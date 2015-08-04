@@ -6,8 +6,8 @@ import QtWebEngine 1.0
 
 ApplicationWindow {
     title: qsTr("Hello World")
-    width: 640
-    height: 480
+    width: 640 * 2
+    height: 480 * 2
     visible: true
 
 

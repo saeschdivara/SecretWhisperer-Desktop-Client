@@ -14,3 +14,10 @@ include(deployment.pri)
 
 DISTFILES += \
     ui/interface/index.html
+
+unix|win32: LIBS += -L/usr/local/lib/ -lbotan-1.11
+
+INCLUDEPATH += /usr/local/include/botan-1.11/
+DEPENDPATH += /usr/local/include/botan-1.11/
+
+CONFIG += c++11
