@@ -13,7 +13,7 @@ ApplicationWindow {
 
     WebEngineView {
         id: webview
-        url: "qrc:/ui/index.html"
+        url: "qrc:/ui/interface/index.html"
         anchors.fill: parent
     }
 }

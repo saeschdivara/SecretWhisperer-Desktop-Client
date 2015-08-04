@@ -13,4 +13,4 @@ QML_IMPORT_PATH =
 include(deployment.pri)
 
 DISTFILES += \
-    ui/index.html
+    ui/interface/index.html

@@ -117,3 +117,5 @@ Makefile*
 
 ### SASS
 .sass-cache
+
+*.js.map
