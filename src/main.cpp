@@ -1,18 +1,23 @@
 #include <QApplication>
 #include <QtWebKitWidgets/QWebView>
+#include <QtWebKitWidgets/QWebFrame>
 #include <QtWebKitWidgets/QWebInspector>
 
-#include <botan/aes.h>
+#include "chat/chatcontroller.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    Botan::AES_256 aes;
+
+    ChatController chat;
 
     QWebView webview;
     webview.load(QUrl(QStringLiteral("qrc:/ui/interface/index.html")));
     webview.resize(640, 540);
     webview.show();
+
+    // Expose objects to javascript
+    webview.page()->mainFrame()->addToJavaScriptWindowObject(QStringLiteral("chat"), &chat);
 
 #if WHISPERER_DEBUG_BUILD
     webview.page()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);

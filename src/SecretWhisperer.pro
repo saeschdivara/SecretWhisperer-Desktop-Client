@@ -2,7 +2,8 @@ TEMPLATE = app
 
 QT += widgets webkitwidgets
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    chat/chatcontroller.cpp
 
 RESOURCES += \
     ui.qrc
@@ -24,3 +25,6 @@ CONFIG += c++11
 debug {
     DEFINES += WHISPERER_DEBUG_BUILD
 }
+
+HEADERS += \
+    chat/chatcontroller.h
