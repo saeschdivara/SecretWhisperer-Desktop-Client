@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>main.qml</file>
         <file>ui/interface/index.html</file>
         <file>ui/css/stylesheets/screen.css</file>
         <file>ui/js/3rdparty/jquery-2.1.4.min.js</file>

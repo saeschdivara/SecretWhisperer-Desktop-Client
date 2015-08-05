@@ -1,59 +1,11 @@
 <html>
 <head>
     <link rel="stylesheet" href="qrc:/ui/css/stylesheets/screen.css"/>
-    <script type="text/javascript" src="qwebchannel.js"></script>
     <script src="qrc:/ui/js/3rdparty/jquery-2.1.4.min.js"></script>
     <script src="qrc:/ui/js/dist/app.js"></script>
 </head>
 
 <body>
-<script>
-    'use strict';
-    var wsUri = "ws://localhost:12345";
-    window.loggedin = false;
-
-    window.onload = function() {
-        var socket = new WebSocket(wsUri);
-
-        log(socket);
-
-        socket.onclose = function()
-        {
-            log("web channel closed");
-        };
-        socket.onerror = function(error)
-        {
-            log("web channel error: " + error);
-        };
-        socket.onopen = function()
-        {
-            window.channel = new QWebChannel(socket, function(channel) {
-                //connect to the changed signal of a property
-                channel.objects.chatserver.userListChanged.connect(function() {
-                    $('#userlist').empty();
-                    //access the property
-                    channel.objects.chatserver.userList.forEach(function(user) {
-                        $('#userlist').append(user + '<br>');
-                    });
-                });
-                //connect to a signal
-                channel.objects.chatserver.newMessage.connect(function(time, user, message) {
-                    $('#chat').append("[" + time + "] " + user + ": " +  message + '<br>');
-                });
-                //connect to a signal
-                channel.objects.chatserver.keepAlive.connect(function(args) {
-                    if(window.loggedin) {
-                        //call a method
-                        channel.objects.chatserver.keepAliveResponse($('#loginname').val())
-                        console.log("sent alive");
-                    }
-                });
-
-            });
-        }
-    }
-</script>
-
 <div id="message-board"></div>
 </body>
 </html>
