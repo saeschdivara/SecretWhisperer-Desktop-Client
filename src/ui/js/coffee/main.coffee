@@ -1,7 +1,12 @@
 
 onServerConnect = () ->
     console.log('Connected')
-    chat.connectToUser('other_user')
+
+    jQuery('#submit-button').click(
+        () ->
+            chat.chooseUserName(jQuery('#username').text())
+            chat.connectToUser('other_user')
+    )
 
 onServerError = (error) ->
     console.log(error)
