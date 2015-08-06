@@ -44,6 +44,11 @@ ChatController::~ChatController()
     socket->disconnectFromHost();
 }
 
+void ChatController::onConnectionEstablished()
+{
+    //
+}
+
 void ChatController::onError(const QList<QSslError> &errors)
 {
     qDebug() << "Error: " << errors;
@@ -65,10 +70,34 @@ void ChatController::connectToServer(const QString &url, quint16 port)
     socket->connectToHostEncrypted(url, port);
 }
 
+void ChatController::chooseUserName(const QString &username)
+{
+    qDebug() << "Choosing username";
+    socket->write(
+                    QByteArrayLiteral("USER:") +
+                    username.toUtf8() +
+                    QByteArrayLiteral("\r\n\r\n")
+                );
+}
+
 void ChatController::connectToUser(const QString &username)
 {
     qDebug() << "Connecting to user";
-    socket->write(QByteArrayLiteral("ddd"));
-    socket->waitForBytesWritten();
-    qDebug() << "We have written";
+    socket->write(
+                    QByteArrayLiteral("CONNECT:") +
+                    username.toUtf8() +
+                    QByteArrayLiteral("\r\n\r\n")
+                );
+}
+
+void ChatController::sendMessageToUser(const QString &username, const QString &message)
+{
+    qDebug() << "Sending user a message";
+    socket->write(
+                    QByteArrayLiteral("SEND:") +
+                    username.toUtf8() +
+                    QByteArrayLiteral("\r\n") +
+                    message.toUtf8() +
+                    QByteArrayLiteral("\r\n\r\n")
+                );
 }

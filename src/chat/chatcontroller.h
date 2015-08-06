@@ -19,10 +19,14 @@ signals:
 
 public slots:
 
+    void onConnectionEstablished();
     void onError(const QList<QSslError> &errors);
 
+    // User Actions
     void connectToServer(const QString &url, quint16 port);
+    void chooseUserName(const QString & username);
     void connectToUser(const QString & username);
+    void sendMessageToUser(const QString & username, const QString & message);
 
 private:
     QSslSocket * socket;
