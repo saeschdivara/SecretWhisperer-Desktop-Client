@@ -20,6 +20,7 @@ signals:
 public slots:
 
     void onConnectionEstablished();
+    void onServerData();
     void onError(const QList<QSslError> &errors);
 
     // User Actions
@@ -27,6 +28,9 @@ public slots:
     void chooseUserName(const QString & username);
     void connectToUser(const QString & username);
     void sendMessageToUser(const QString & username, const QString & message);
+
+protected:
+    QByteArray stripRequest(QByteArray data, QByteArray command);
 
 private:
     QSslSocket * socket;

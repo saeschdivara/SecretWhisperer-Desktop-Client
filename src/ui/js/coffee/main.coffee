@@ -15,8 +15,17 @@ onDocumentReady = () ->
 
     onUserConnected = () ->
 
-        jQuery('#chatbox').show()
+        jQuery('#otheruserbox').show()
+        jQuery('#submit-other-user-button').click(onUserChosen)
 
+
+    onUserChosen = () ->
+
+        other_user_name = jQuery('#other-username').val()
+        chat.connectToUser(other_user_name)
+
+        jQuery('#otheruserbox').hide()
+        jQuery('#chatbox').show()
         jQuery('#submit-message-button').click(onUserMessageSend)
 
 
@@ -29,14 +38,12 @@ onDocumentReady = () ->
                 console.log('on login button clicked')
 
                 my_user_name = jQuery('#username').val()
-                other_user_name = jQuery('#other-username').val()
 
                 chat.chooseUserName(my_user_name)
 
                 jQuery('#userbox').hide()
 
                 onUserConnected()
-                chat.connectToUser(other_user_name)
         )
 
     onServerError = (error) ->
@@ -50,6 +57,7 @@ onDocumentReady = () ->
     console.log('connected to the server')
 
     jQuery('#chatbox').hide()
+    jQuery('#otheruserbox').hide()
 
 
 

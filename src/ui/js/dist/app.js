@@ -2,7 +2,7 @@
   var getRandomHexString, log, onDocumentReady;
 
   onDocumentReady = function() {
-    var my_user_name, onServerConnect, onServerError, onUserConnected, onUserMessageSend, other_user_name;
+    var my_user_name, onServerConnect, onServerError, onUserChosen, onUserConnected, onUserMessageSend, other_user_name;
     my_user_name = '';
     other_user_name = '';
     onUserMessageSend = function() {
@@ -12,6 +12,13 @@
       return chat.sendMessageToUser(other_user_name, message);
     };
     onUserConnected = function() {
+      jQuery('#otheruserbox').show();
+      return jQuery('#submit-other-user-button').click(onUserChosen);
+    };
+    onUserChosen = function() {
+      other_user_name = jQuery('#other-username').val();
+      chat.connectToUser(other_user_name);
+      jQuery('#otheruserbox').hide();
       jQuery('#chatbox').show();
       return jQuery('#submit-message-button').click(onUserMessageSend);
     };
@@ -20,11 +27,9 @@
       return jQuery('#submit-user-button').click(function() {
         console.log('on login button clicked');
         my_user_name = jQuery('#username').val();
-        other_user_name = jQuery('#other-username').val();
         chat.chooseUserName(my_user_name);
         jQuery('#userbox').hide();
-        onUserConnected();
-        return chat.connectToUser(other_user_name);
+        return onUserConnected();
       });
     };
     onServerError = function(error) {
@@ -34,7 +39,8 @@
     chat.error.connect(onServerError);
     chat.connectToServer('localhost', 8888);
     console.log('connected to the server');
-    return jQuery('#chatbox').hide();
+    jQuery('#chatbox').hide();
+    return jQuery('#otheruserbox').hide();
   };
 
   jQuery(document).ready(onDocumentReady);
