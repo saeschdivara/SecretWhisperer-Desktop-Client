@@ -18,7 +18,7 @@
 #include <botan/pubkey.h>
 #include <botan/pkcs8.h>
 
-const size_t AES_KEY_SIZE = 256;
+const size_t SERPENT_KEY_SIZE = 256;
 
 ChatController::ChatController(QObject *parent) : QObject(parent)
 {
@@ -128,18 +128,18 @@ void ChatController::onServerData()
         Botan::AutoSeeded_RNG rng;
         Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
 
-        Botan::SymmetricKey aesKey(rng, AES_KEY_SIZE);
-        user->setSymmetricKey(aesKey);
+        Botan::SymmetricKey serpentKey(rng, SERPENT_KEY_SIZE);
+        user->setSymmetricKey(serpentKey);
 
-        Botan::byte msgtoencrypt[AES_KEY_SIZE];
-        std::string aesString = aesKey.as_string();
+        Botan::byte msgtoencrypt[SERPENT_KEY_SIZE];
+        std::string serpentString = serpentKey.as_string();
 
-        for (unsigned int i = 0; i < AES_KEY_SIZE; i++)
+        for (unsigned int i = 0; i < SERPENT_KEY_SIZE; i++)
         {
-            msgtoencrypt[i] = aesString[i];
+            msgtoencrypt[i] = serpentString[i];
         }
 
-        std::vector<Botan::byte> ciphertext = encryptor.encrypt(msgtoencrypt, AES_KEY_SIZE, rng);
+        std::vector<Botan::byte> ciphertext = encryptor.encrypt(msgtoencrypt, SERPENT_KEY_SIZE, rng);
 
         QByteArray keyCipherData;
         keyCipherData.resize(ciphertext.size());
