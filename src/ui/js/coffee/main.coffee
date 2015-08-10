@@ -6,22 +6,52 @@ onDocumentReady = () ->
     other_user_name = ''
 
 
+    create_message_from_me = (message) ->
+        jQuery("
+            <div class='message-box my-message'>
+                <div class='message'>
+                    <p>#{message}</p>
+                </div>
+            </div>
+        ")
+
+
+    create_message_to_me = (message) ->
+        jQuery("
+            <div class='message-box partner-message'>
+                <div class='message'>
+                    <p>#{message}</p>
+                </div>
+            </div>
+        ")
+
+
     onUserMessageSend = () ->
         console.log('sending message')
 
         message = jQuery('#chat-input').val()
+        jQuery('#chat-input').val("")
         chat.sendMessageToUser(other_user_name, message)
+
+
+        created_message = create_message_from_me(message)
+
+        jQuery("#chat-messages").append(created_message)
+
+
+    onUserMessageReceived = (username, message) ->
+        console.log('Name: ' + username)
+        console.log("Message: #{message}")
+
+
+        created_message = create_message_to_me(message)
+        jQuery("#chat-messages").append(created_message)
 
 
     onUserConnected = () ->
 
         jQuery('#otheruserbox').show()
         jQuery('#submit-other-user-button').click(onUserChosen)
-
-
-    onUserMessageReceived = (username, message) ->
-        console.log('Name: ' + username)
-        console.log("Message: #{message}")
 
 
     onUserChosen = () ->

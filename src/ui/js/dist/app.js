@@ -2,22 +2,34 @@
   var getRandomHexString, log, onDocumentReady;
 
   onDocumentReady = function() {
-    var my_user_name, onServerConnect, onServerError, onUserChosen, onUserConnected, onUserMessageReceived, onUserMessageSend, other_user_name;
+    var create_message_from_me, create_message_to_me, my_user_name, onServerConnect, onServerError, onUserChosen, onUserConnected, onUserMessageReceived, onUserMessageSend, other_user_name;
     my_user_name = '';
     other_user_name = '';
+    create_message_from_me = function(message) {
+      return jQuery("<div class='message-box my-message'> <div class='message'> <p>" + message + "</p> </div> </div>");
+    };
+    create_message_to_me = function(message) {
+      return jQuery("<div class='message-box partner-message'> <div class='message'> <p>" + message + "</p> </div> </div>");
+    };
     onUserMessageSend = function() {
-      var message;
+      var created_message, message;
       console.log('sending message');
       message = jQuery('#chat-input').val();
-      return chat.sendMessageToUser(other_user_name, message);
+      jQuery('#chat-input').val("");
+      chat.sendMessageToUser(other_user_name, message);
+      created_message = create_message_from_me(message);
+      return jQuery("#chat-messages").append(created_message);
+    };
+    onUserMessageReceived = function(username, message) {
+      var created_message;
+      console.log('Name: ' + username);
+      console.log("Message: " + message);
+      created_message = create_message_to_me(message);
+      return jQuery("#chat-messages").append(created_message);
     };
     onUserConnected = function() {
       jQuery('#otheruserbox').show();
       return jQuery('#submit-other-user-button').click(onUserChosen);
-    };
-    onUserMessageReceived = function(username, message) {
-      console.log('Name: ' + username);
-      return console.log("Message: " + message);
     };
     onUserChosen = function() {
       other_user_name = jQuery('#other-username').val();
