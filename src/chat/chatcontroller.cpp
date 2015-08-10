@@ -89,6 +89,8 @@ void ChatController::onServerData()
         QByteArray decryptedMessage = decrypt(message, key);
 
         qDebug() << "Decrypted message: " << decryptedMessage;
+
+        emit receivedUserMessage(username, decryptedMessage);
     }
     else if ( data.indexOf("STARTUP:") == 0 ) {
         QByteArray messageData = stripRequest(data, "STARTUP:");

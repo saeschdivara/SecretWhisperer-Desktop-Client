@@ -66,3 +66,31 @@ a img {
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
 }
+
+/* line 2, ../sass/chat/_contacts.sass */
+#contacts {
+  float: left;
+  width: 20%;
+  background: #003366;
+}
+/* line 13, ../sass/chat/_contacts.sass */
+#contacts .contact-box {
+  background: blueviolet;
+}
+
+/* line 1, ../sass/chat/_messages.sass */
+#chatbox {
+  float: right;
+  width: 80%;
+  background: #003366;
+}
+
+/* line 5, ../sass/chat/_style.sass */
+main {
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px 10px;
+  min-width: 800px;
+  width: 800px;
+  max-width: 800px;
+}
