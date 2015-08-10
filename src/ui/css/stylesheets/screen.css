@@ -71,21 +71,105 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 #contacts {
   float: left;
   width: 20%;
-  background: #003366;
+  height: 100%;
+  padding: 20px;
+  background: #cfffd5;
 }
-/* line 13, ../sass/chat/_contacts.sass */
+/* line 17, ../sass/chat/_contacts.sass */
 #contacts .contact-box {
-  background: blueviolet;
+  background: #ffffaa;
 }
 
 /* line 1, ../sass/chat/_messages.sass */
 #chatbox {
   float: right;
-  width: 80%;
+  width: 70%;
+  height: 100%;
+  padding: 20px;
   background: #003366;
+}
+/* line 16, ../sass/chat/_messages.sass */
+#chatbox #chat-messages {
+  margin: 10px;
+  padding: 10px;
+  background: #cfffd5;
+}
+/* line 27, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .message-box {
+  height: 20%;
+  margin-bottom: 5px;
+}
+/* line 33, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .message-box .message {
+  color: #6c7f6f;
+}
+/* line 36, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .message-box .message p {
+  width: 60%;
+  position: relative;
+  padding: 15px;
+  margin: 1em 0 3em;
+  color: white;
+  background: #c81e2b;
+  background: -webkit-gradient(linear, 0 0, 0 100%, from(#f04349), to(#c81e2b));
+  background: -moz-linear-gradient(#f04349, #c81e2b);
+  background: -o-linear-gradient(#f04349, #c81e2b);
+  background: linear-gradient(#f04349, #c81e2b);
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+}
+/* line 52, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .message-box .message p:before {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  border: 0;
+  border-bottom-width: 20px;
+  border-style: solid;
+  border-color: transparent #c81e2b;
+  display: block;
+  width: 0;
+}
+/* line 67, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .my-message .message {
+  text-align: right;
+}
+/* line 70, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .my-message .message p {
+  float: right;
+}
+/* line 73, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .my-message .message p:before {
+  border-right-width: 30px;
+  right: 60px;
+}
+/* line 80, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .partner-message .message {
+  text-align: left;
+}
+/* line 83, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .partner-message .message p {
+  float: left;
+}
+/* line 86, ../sass/chat/_messages.sass */
+#chatbox #chat-messages .partner-message .message p:before {
+  border-left-width: 30px;
+  left: 60px;
+}
+/* line 92, ../sass/chat/_messages.sass */
+#chatbox textarea {
+  width: 100%;
 }
 
 /* line 5, ../sass/chat/_style.sass */
+body {
+  width: 100%;
+  height: 100%;
+  background: #d9ffde;
+}
+
+/* line 14, ../sass/chat/_style.sass */
 main {
   margin-left: auto;
   margin-right: auto;
@@ -93,4 +177,7 @@ main {
   min-width: 800px;
   width: 800px;
   max-width: 800px;
+  min-height: 400px;
+  height: 500px;
+  max-height: 800px;
 }
