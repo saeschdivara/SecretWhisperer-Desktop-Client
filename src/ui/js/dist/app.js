@@ -2,7 +2,7 @@
   var getRandomHexString, log, onDocumentReady;
 
   onDocumentReady = function() {
-    var my_user_name, onServerConnect, onServerError, onUserChosen, onUserConnected, onUserMessageSend, other_user_name;
+    var my_user_name, onServerConnect, onServerError, onUserChosen, onUserConnected, onUserMessageReceived, onUserMessageSend, other_user_name;
     my_user_name = '';
     other_user_name = '';
     onUserMessageSend = function() {
@@ -15,12 +15,17 @@
       jQuery('#otheruserbox').show();
       return jQuery('#submit-other-user-button').click(onUserChosen);
     };
+    onUserMessageReceived = function(username, message) {
+      console.log('Name: ' + username);
+      return console.log("Message: " + message);
+    };
     onUserChosen = function() {
       other_user_name = jQuery('#other-username').val();
       chat.connectToUser(other_user_name);
       jQuery('#otheruserbox').hide();
       jQuery('#chatbox').show();
-      return jQuery('#submit-message-button').click(onUserMessageSend);
+      jQuery('#submit-message-button').click(onUserMessageSend);
+      return chat.receivedUserMessage.connect(onUserMessageReceived);
     };
     onServerConnect = function() {
       console.log('Connected');

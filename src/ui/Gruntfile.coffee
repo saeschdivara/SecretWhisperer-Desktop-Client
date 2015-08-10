@@ -8,6 +8,14 @@ module.exports = (grunt) ->
         coffee_path + '**/*.coffee'
     ]
 
+    style_path = 'css/'
+    sass_path = style_path + 'sass/'
+
+    sass_style_path = [
+        sass_path + '*.sass'
+        sass_path + '**/*.sass'
+    ]
+
     grunt.initConfig(
         pkg: grunt.file.readJSON('package.json'),
 
@@ -19,11 +27,18 @@ module.exports = (grunt) ->
                     sourceMap: true
 
                 files:
-
-                    ####################################################################
-                    # BILLING CALCULATOR APP SECTION
-                    ####################################################################
                     'js/dist/app.js': coffee_apps_paths
+
+
+        compass:
+            app:
+                outputStyle: 'nested',
+                debugsass: true,
+                options:
+                    config: style_path + 'config.rb',
+                    sassDir: style_path + 'sass',
+                    cssDir: style_path + 'stylesheets',
+                    environment: 'development'
 
 
 
@@ -36,6 +51,14 @@ module.exports = (grunt) ->
 
                 tasks: 'coffee:coffee_app'
 
+
+            app_style_watch:
+                files: [
+                    sass_style_path
+                ]
+
+                tasks: 'compass:app'
+
     )
 
     grunt.loadNpmTasks('grunt-contrib-uglify')
@@ -47,6 +70,7 @@ module.exports = (grunt) ->
     ## COFFEE WATCH TASKS ##
     ########################
     grunt.registerTask('watch-coffee-apps', ['watch:coffee_app_watch'])
+    grunt.registerTask('watch-app-styling', ['watch:app_style_watch'])
 
     ######################
     ## SASS WATCH TASKS ##

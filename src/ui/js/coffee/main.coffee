@@ -19,6 +19,11 @@ onDocumentReady = () ->
         jQuery('#submit-other-user-button').click(onUserChosen)
 
 
+    onUserMessageReceived = (username, message) ->
+        console.log('Name: ' + username)
+        console.log("Message: #{message}")
+
+
     onUserChosen = () ->
 
         other_user_name = jQuery('#other-username').val()
@@ -27,6 +32,8 @@ onDocumentReady = () ->
         jQuery('#otheruserbox').hide()
         jQuery('#chatbox').show()
         jQuery('#submit-message-button').click(onUserMessageSend)
+
+        chat.receivedUserMessage.connect(onUserMessageReceived)
 
 
     onServerConnect = () ->
