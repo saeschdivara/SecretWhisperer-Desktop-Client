@@ -4,7 +4,8 @@ CONFIG   -= app_bundle
 QT += widgets webkitwidgets
 
 SOURCES += main.cpp \
-    chat/chatcontroller.cpp
+    chat/chatcontroller.cpp \
+    chat/connecteduser.cpp
 
 RESOURCES += \
     ui.qrc
@@ -28,4 +29,5 @@ debug {
 }
 
 HEADERS += \
-    chat/chatcontroller.h
+    chat/chatcontroller.h \
+    chat/connecteduser.h
