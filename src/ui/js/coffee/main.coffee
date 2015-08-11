@@ -5,6 +5,8 @@ onDocumentReady = () ->
     my_user_name = ''
     other_user_name = ''
 
+    user_list = []
+
 
     create_message_from_me = (message) ->
         jQuery("
@@ -52,6 +54,7 @@ onDocumentReady = () ->
 
         jQuery('#otheruserbox').show()
         jQuery('#submit-other-user-button').click(onUserChosen)
+        jQuery('#cancel-other-user-button').click(onCancelUserChosen)
 
 
     onUserChosen = () ->
@@ -64,6 +67,20 @@ onDocumentReady = () ->
         jQuery('#submit-message-button').click(onUserMessageSend)
 
         chat.receivedUserMessage.connect(onUserMessageReceived)
+
+
+    onCancelUserChosen = () ->
+
+        jQuery('#otheruserbox').hide()
+        jQuery('#chatbox').show()
+        jQuery('#submit-message-button').click(onUserMessageSend)
+
+        chat.receivedUserMessage.connect(onUserMessageReceived)
+
+
+    onUserAdded = (username) ->
+        console.log("User added: #{username}")
+        user_list.push(username)
 
 
     onServerConnect = () ->
@@ -81,6 +98,8 @@ onDocumentReady = () ->
                 jQuery('#userbox').hide()
 
                 onUserConnected()
+
+                chat.connectToUser.connect(onUserAdded)
         )
 
     onServerError = (error) ->

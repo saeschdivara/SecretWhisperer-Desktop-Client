@@ -18,7 +18,7 @@
 #include <botan/pubkey.h>
 #include <botan/pkcs8.h>
 
-const size_t SERPENT_KEY_SIZE = 256;
+const size_t SERPENT_KEY_SIZE = 128;
 
 ChatController::ChatController(QObject *parent) : QObject(parent)
 {
@@ -93,114 +93,10 @@ void ChatController::onServerData()
         emit receivedUserMessage(username, decryptedMessage);
     }
     else if ( data.indexOf("STARTUP:") == 0 ) {
-        QByteArray messageData = stripRequest(data, "STARTUP:");
-        const QByteArray seperator("\r\n");
-
-        int seperatorIndex = messageData.indexOf(seperator);
-
-        if ( seperatorIndex == -1 ) {
-            socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
-            return;
-        }
-
-        if ( seperatorIndex == 0 ) {
-            socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
-            return;
-        }
-
-        QByteArray username = messageData.left(seperatorIndex);
-        QByteArray publicKey = messageData.mid(seperatorIndex + seperator.length());
-
-        ConnectedUser * user;
-
-        // Check if we are already connected to that user
-        if ( !connectedUsers.contains(username) ) {
-            Botan::DataSource_Memory key_pub(publicKey.toStdString());
-            auto publicRsaKey = Botan::X509::load_key(key_pub);
-
-            user = new ConnectedUser(publicRsaKey);
-            connectedUsers.insert(username, user);
-
-            qDebug() << "New user with key added";
-        }
-        else {
-            user = connectedUsers.value(username);
-        }
-
-        Botan::AutoSeeded_RNG rng;
-        Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
-
-        Botan::SymmetricKey serpentKey(rng, SERPENT_KEY_SIZE);
-        user->setSymmetricKey(serpentKey);
-
-        Botan::byte msgtoencrypt[SERPENT_KEY_SIZE];
-        std::string serpentString = serpentKey.as_string();
-
-        for (unsigned int i = 0; i < SERPENT_KEY_SIZE; i++)
-        {
-            msgtoencrypt[i] = serpentString[i];
-        }
-
-        std::vector<Botan::byte> ciphertext = encryptor.encrypt(msgtoencrypt, SERPENT_KEY_SIZE, rng);
-
-        QByteArray keyCipherData;
-        keyCipherData.resize(ciphertext.size());
-
-        for ( uint i = 0; i < ciphertext.size(); i++ ) {
-            keyCipherData[i] = ciphertext.at(i);
-        }
-
-        socket->write(
-                    QByteArrayLiteral("ENCRYPT:") +
-                    username +
-                    seperator +
-                    keyCipherData +
-                    QByteArrayLiteral("\r\n\r\n")
-                    );
+        onStartupEvent(data);
     }
     else if ( data.indexOf("ENCRYPT:") == 0 ) {
-        QByteArray messageData = stripRequest(data, "ENCRYPT:");
-        const QByteArray seperator("\r\n");
-
-        int seperatorIndex = messageData.indexOf(seperator);
-
-        if ( seperatorIndex == -1 ) {
-            socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
-            return;
-        }
-
-        if ( seperatorIndex == 0 ) {
-            socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
-            return;
-        }
-
-        QByteArray username = messageData.left(seperatorIndex);
-        QByteArray message = messageData.mid(seperatorIndex + seperator.length());
-
-        qDebug() << "Received encryption key";
-
-        if ( connectedUsers.contains(username) ) {
-            ConnectedUser * user = connectedUsers.value(username);
-
-            qDebug() << "Before decryptor";
-
-            Botan::PK_Decryptor_EME decryptor(user->privateKey(), "EME1(SHA-256)");
-
-            Botan::byte msgToDecrypt[message.length()];
-
-            qDebug() << "Round and roun";
-
-            for (int i = 0; i < message.length(); i++)
-            {
-                Botan::byte character = (Botan::byte) message.at(i);
-                msgToDecrypt[i] = character;
-            }
-
-            Botan::secure_vector<Botan::byte> decryptedAesKey = decryptor.decrypt(msgToDecrypt, message.length());
-            Botan::SymmetricKey aesKey(decryptedAesKey);
-
-            user->setSymmetricKey(aesKey);
-        }
+        onEncryptEvent(data);
     }
     else {
         qDebug() << "Unknwon: " << data;
@@ -263,6 +159,8 @@ void ChatController::connectToUser(const QString &username)
             ConnectedUser * user = new ConnectedUser(publicRsaKey, privateRsaKey, false);
             connectedUsers.insert(username.toUtf8(), user);
 
+            emit connectionToUserEstablished(username);
+
             socket->write(
                             QByteArrayLiteral("CONNECT:") +
                             username.toUtf8() +
@@ -295,6 +193,141 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
                 );
 }
 
+void ChatController::onStartupEvent(const QByteArray &data)
+{
+    QByteArray messageData = stripRequest(data, "STARTUP:");
+    const QByteArray seperator("\r\n");
+
+    int seperatorIndex = messageData.indexOf(seperator);
+
+    if ( seperatorIndex == -1 ) {
+        socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
+        return;
+    }
+
+    if ( seperatorIndex == 0 ) {
+        socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
+        return;
+    }
+
+    QByteArray username = messageData.left(seperatorIndex);
+    QByteArray publicKey = messageData.mid(seperatorIndex + seperator.length());
+
+    ConnectedUser * user;
+
+    // Check if we are already connected to that user
+    if ( !connectedUsers.contains(username) ) {
+        Botan::DataSource_Memory key_pub(publicKey.toStdString());
+        auto publicRsaKey = Botan::X509::load_key(key_pub);
+
+        user = new ConnectedUser(publicRsaKey);
+        connectedUsers.insert(username, user);
+
+        qDebug() << "New user with key added";
+    }
+    else {
+        user = connectedUsers.value(username);
+    }
+
+    emit connectionToUserEstablished(username);
+
+    Botan::AutoSeeded_RNG rng;
+    Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
+
+    Botan::SymmetricKey serpentKey(rng, SERPENT_KEY_SIZE);
+    user->setSymmetricKey(serpentKey);
+
+    std::string serpentString = serpentKey.as_string();
+    const int HEX_KEY_SIZE = serpentString.size();
+    Botan::byte msgtoencrypt[HEX_KEY_SIZE];
+
+    for (unsigned int i = 0; i < HEX_KEY_SIZE; i++)
+    {
+        msgtoencrypt[i] = serpentString[i];
+    }
+
+    std::vector<Botan::byte> ciphertext = encryptor.encrypt(msgtoencrypt, HEX_KEY_SIZE, rng);
+
+    QByteArray keyCipherData;
+    keyCipherData.resize(ciphertext.size());
+
+    for ( uint i = 0; i < ciphertext.size(); i++ ) {
+        keyCipherData[i] = ciphertext.at(i);
+    }
+
+    socket->write(
+                QByteArrayLiteral("ENCRYPT:") +
+                username +
+                seperator +
+                keyCipherData +
+                QByteArrayLiteral("\r\n\r\n")
+                );
+}
+
+/**
+ * @brief ChatController::onEncryptEvent
+ * @param data
+ */
+void ChatController::onEncryptEvent(const QByteArray &data)
+{
+    QByteArray messageData = stripRequest(data, "ENCRYPT:");
+    const QByteArray seperator("\r\n");
+
+    int seperatorIndex = messageData.indexOf(seperator);
+
+    if ( seperatorIndex == -1 ) {
+        socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
+        return;
+    }
+
+    if ( seperatorIndex == 0 ) {
+        socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
+        return;
+    }
+
+    QByteArray username = messageData.left(seperatorIndex);
+    QByteArray message = messageData.mid(seperatorIndex + seperator.length());
+
+    qDebug() << "Received encryption key";
+
+    if ( connectedUsers.contains(username) ) {
+        ConnectedUser * user = connectedUsers.value(username);
+
+        qDebug() << "Before decryptor";
+
+        Botan::PK_Decryptor_EME decryptor(user->privateKey(), "EME1(SHA-256)");
+
+        Botan::byte msgToDecrypt[message.length()];
+
+        qDebug() << "Round and roun";
+
+        for (int i = 0; i < message.length(); i++)
+        {
+            Botan::byte character = (Botan::byte) message.at(i);
+            msgToDecrypt[i] = character;
+        }
+
+        Botan::secure_vector<Botan::byte> decryptedSerpentKey = decryptor.decrypt(msgToDecrypt, message.length());
+
+        QByteArray hexKey;
+
+        for (int i = 0; i < decryptedSerpentKey.size(); ++i) {
+            Botan::byte dataByte = decryptedSerpentKey[i];
+            hexKey.append((char) dataByte);
+        }
+
+        Botan::SymmetricKey aesKey(hexKey.toStdString());
+
+        user->setSymmetricKey(aesKey);
+    }
+}
+
+/**
+ * @brief ChatController::encrypt
+ * @param input
+ * @param key
+ * @return
+ */
 QByteArray ChatController::encrypt(const QByteArray &input, const Botan::SymmetricKey &key)
 {
     const int inputSize = input.length();
@@ -312,15 +345,7 @@ QByteArray ChatController::encrypt(const QByteArray &input, const Botan::Symmetr
 
 QByteArray ChatController::decrypt(const QByteArray &input, const Botan::SymmetricKey &key)
 {
-    const int inputSize = input.length();
-    Botan::byte inputData[inputSize];
-
-    for (int i = 0; i < inputSize; ++i) {
-        inputData[i] = input.at(i);
-    }
-
     std::string decryptedString = Botan::CryptoBox::decrypt(input.toStdString(), key.as_string());
-
     return QByteArray::fromStdString(decryptedString);
 }
 

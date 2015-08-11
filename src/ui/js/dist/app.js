@@ -2,9 +2,10 @@
   var getRandomHexString, log, onDocumentReady;
 
   onDocumentReady = function() {
-    var create_message_from_me, create_message_to_me, my_user_name, onServerConnect, onServerError, onUserChosen, onUserConnected, onUserMessageReceived, onUserMessageSend, other_user_name;
+    var create_message_from_me, create_message_to_me, my_user_name, onCancelUserChosen, onServerConnect, onServerError, onUserAdded, onUserChosen, onUserConnected, onUserMessageReceived, onUserMessageSend, other_user_name, user_list;
     my_user_name = '';
     other_user_name = '';
+    user_list = [];
     create_message_from_me = function(message) {
       return jQuery("<div class='message-box my-message'> <div class='message'> <p>" + message + "</p> </div> </div>");
     };
@@ -29,7 +30,8 @@
     };
     onUserConnected = function() {
       jQuery('#otheruserbox').show();
-      return jQuery('#submit-other-user-button').click(onUserChosen);
+      jQuery('#submit-other-user-button').click(onUserChosen);
+      return jQuery('#cancel-other-user-button').click(onCancelUserChosen);
     };
     onUserChosen = function() {
       other_user_name = jQuery('#other-username').val();
@@ -39,6 +41,16 @@
       jQuery('#submit-message-button').click(onUserMessageSend);
       return chat.receivedUserMessage.connect(onUserMessageReceived);
     };
+    onCancelUserChosen = function() {
+      jQuery('#otheruserbox').hide();
+      jQuery('#chatbox').show();
+      jQuery('#submit-message-button').click(onUserMessageSend);
+      return chat.receivedUserMessage.connect(onUserMessageReceived);
+    };
+    onUserAdded = function(username) {
+      console.log("User added: " + username);
+      return user_list.push(username);
+    };
     onServerConnect = function() {
       console.log('Connected');
       return jQuery('#submit-user-button').click(function() {
@@ -46,7 +58,8 @@
         my_user_name = jQuery('#username').val();
         chat.chooseUserName(my_user_name);
         jQuery('#userbox').hide();
-        return onUserConnected();
+        onUserConnected();
+        return chat.connectToUser.connect(onUserAdded);
       });
     };
     onServerError = function(error) {

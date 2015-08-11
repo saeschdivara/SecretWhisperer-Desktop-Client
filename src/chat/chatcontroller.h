@@ -19,6 +19,7 @@ public:
 signals:
     void connected();
     void receivedUserMessage(const QString & username, const QString & message);
+    void connectionToUserEstablished(const QString & username);
     void error(QAbstractSocket::SocketError);
 
 public slots:
@@ -34,6 +35,12 @@ public slots:
     void sendMessageToUser(const QString & username, const QString & message);
 
 protected:
+
+    // Events helper
+    void onStartupEvent(const QByteArray & data);
+    void onEncryptEvent(const QByteArray & data);
+
+    // Helper methods
     QByteArray encrypt(const QByteArray & input, const Botan::SymmetricKey & key);
     QByteArray decrypt(const QByteArray & input, const Botan::SymmetricKey & key);
     QByteArray stripRequest(QByteArray data, QByteArray command);
