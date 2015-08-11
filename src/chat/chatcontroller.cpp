@@ -20,6 +20,10 @@
 
 const size_t SERPENT_KEY_SIZE = 128;
 
+/**
+ * @brief ChatController::ChatController
+ * @param parent
+ */
 ChatController::ChatController(QObject *parent) : QObject(parent)
 {
     socket = new QSslSocket(this);
@@ -52,14 +56,21 @@ ChatController::ChatController(QObject *parent) : QObject(parent)
 ChatController::~ChatController()
 {
     qDebug() << "Killed controller";
+    socket->close();
     socket->disconnectFromHost();
 }
 
+/**
+ * @brief ChatController::onConnectionEstablished
+ */
 void ChatController::onConnectionEstablished()
 {
     //
 }
 
+/**
+ * @brief ChatController::onServerData
+ */
 void ChatController::onServerData()
 {
     QByteArray data = socket->readAll();
@@ -67,30 +78,7 @@ void ChatController::onServerData()
     qDebug() << "Received server data";
 
     if ( data.indexOf("MESSAGE:") == 0 ) {
-        QByteArray messageData = stripRequest(data, "MESSAGE:");
-        const QByteArray seperator("\r\n");
-
-        int seperatorIndex = messageData.indexOf(seperator);
-
-        if ( seperatorIndex == -1 ) {
-            socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
-            return;
-        }
-
-        if ( seperatorIndex == 0 ) {
-            socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
-            return;
-        }
-
-        QByteArray username = messageData.left(seperatorIndex);
-        QByteArray message = messageData.mid(seperatorIndex + seperator.length());
-
-        auto key = connectedUsers.value(username)->symmetricKey();
-        QByteArray decryptedMessage = decrypt(message, key);
-
-        qDebug() << "Decrypted message: " << decryptedMessage;
-
-        emit receivedUserMessage(username, decryptedMessage);
+        onMessageEvent(data);
     }
     else if ( data.indexOf("STARTUP:") == 0 ) {
         onStartupEvent(data);
@@ -103,12 +91,21 @@ void ChatController::onServerData()
     }
 }
 
+/**
+ * @brief ChatController::onError
+ * @param errors
+ */
 void ChatController::onError(const QList<QSslError> &errors)
 {
     qDebug() << "Error: " << errors;
     qDebug() << "Error String: " << socket->errorString();
 }
 
+/**
+ * @brief ChatController::connectToServer
+ * @param url
+ * @param port
+ */
 void ChatController::connectToServer(const QString &url, quint16 port)
 {
     // Connections
@@ -125,6 +122,10 @@ void ChatController::connectToServer(const QString &url, quint16 port)
     socket->connectToHostEncrypted(url, port);
 }
 
+/**
+ * @brief ChatController::chooseUserName
+ * @param username
+ */
 void ChatController::chooseUserName(const QString &username)
 {
     qDebug() << "Choosing username";
@@ -135,6 +136,10 @@ void ChatController::chooseUserName(const QString &username)
                 );
 }
 
+/**
+ * @brief ChatController::connectToUser
+ * @param username
+ */
 void ChatController::connectToUser(const QString &username)
 {
     qDebug() << "Connecting to user";
@@ -175,9 +180,19 @@ void ChatController::connectToUser(const QString &username)
         }
 }
 
+/**
+ * @brief ChatController::sendMessageToUser
+ * @param username
+ * @param message
+ */
 void ChatController::sendMessageToUser(const QString &username, const QString &message)
 {
     qDebug() << "Sending user a message";
+
+    if ( !connectedUsers.contains(username.toUtf8()) ) {
+        qDebug() << "You are not connected to this user";
+        return;
+    }
 
     auto key = connectedUsers.value(username.toUtf8())->symmetricKey();
     QByteArray encryptedMessage = encrypt(message.toUtf8(), key);
@@ -193,6 +208,10 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
                 );
 }
 
+/**
+ * @brief ChatController::onStartupEvent
+ * @param data
+ */
 void ChatController::onStartupEvent(const QByteArray &data)
 {
     QByteArray messageData = stripRequest(data, "STARTUP:");
@@ -307,8 +326,10 @@ void ChatController::onEncryptEvent(const QByteArray &data)
             msgToDecrypt[i] = character;
         }
 
+        // Decrypt key with private key
         Botan::secure_vector<Botan::byte> decryptedSerpentKey = decryptor.decrypt(msgToDecrypt, message.length());
 
+        // The key is transfered in hex
         QByteArray hexKey;
 
         for (int i = 0; i < decryptedSerpentKey.size(); ++i) {
@@ -320,6 +341,38 @@ void ChatController::onEncryptEvent(const QByteArray &data)
 
         user->setSymmetricKey(aesKey);
     }
+}
+
+/**
+ * @brief ChatController::onMessageEvent
+ * @param data
+ */
+void ChatController::onMessageEvent(const QByteArray &data)
+{
+    QByteArray messageData = stripRequest(data, "MESSAGE:");
+    const QByteArray seperator("\r\n");
+
+    int seperatorIndex = messageData.indexOf(seperator);
+
+    if ( seperatorIndex == -1 ) {
+        socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
+        return;
+    }
+
+    if ( seperatorIndex == 0 ) {
+        socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
+        return;
+    }
+
+    QByteArray username = messageData.left(seperatorIndex);
+    QByteArray message = messageData.mid(seperatorIndex + seperator.length());
+
+    auto key = connectedUsers.value(username)->symmetricKey();
+    QByteArray decryptedMessage = decrypt(message, key);
+
+    qDebug() << "Decrypted message: " << decryptedMessage;
+
+    emit receivedUserMessage(username, decryptedMessage);
 }
 
 /**
@@ -343,12 +396,24 @@ QByteArray ChatController::encrypt(const QByteArray &input, const Botan::Symmetr
     return QByteArray::fromStdString(encryptedString);
 }
 
+/**
+ * @brief ChatController::decrypt
+ * @param input
+ * @param key
+ * @return
+ */
 QByteArray ChatController::decrypt(const QByteArray &input, const Botan::SymmetricKey &key)
 {
     std::string decryptedString = Botan::CryptoBox::decrypt(input.toStdString(), key.as_string());
     return QByteArray::fromStdString(decryptedString);
 }
 
+/**
+ * @brief ChatController::stripRequest
+ * @param data
+ * @param command
+ * @return
+ */
 QByteArray ChatController::stripRequest(QByteArray data, QByteArray command)
 {
     const QByteArray endLiteral("\r\n\r\n");

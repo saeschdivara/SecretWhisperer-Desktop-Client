@@ -82,6 +82,8 @@ onDocumentReady = () ->
         console.log("User added: #{username}")
         user_list.push(username)
 
+        other_user_name = username
+
 
     onServerConnect = () ->
         console.log('Connected')
@@ -99,7 +101,7 @@ onDocumentReady = () ->
 
                 onUserConnected()
 
-                chat.connectToUser.connect(onUserAdded)
+                chat.connectionToUserEstablished.connect(onUserAdded)
         )
 
     onServerError = (error) ->

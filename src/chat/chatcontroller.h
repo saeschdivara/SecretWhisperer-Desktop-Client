@@ -39,6 +39,7 @@ protected:
     // Events helper
     void onStartupEvent(const QByteArray & data);
     void onEncryptEvent(const QByteArray & data);
+    void onMessageEvent(const QByteArray & data);
 
     // Helper methods
     QByteArray encrypt(const QByteArray & input, const Botan::SymmetricKey & key);

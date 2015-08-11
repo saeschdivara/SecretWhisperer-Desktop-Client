@@ -49,7 +49,8 @@
     };
     onUserAdded = function(username) {
       console.log("User added: " + username);
-      return user_list.push(username);
+      user_list.push(username);
+      return other_user_name = username;
     };
     onServerConnect = function() {
       console.log('Connected');
@@ -59,7 +60,7 @@
         chat.chooseUserName(my_user_name);
         jQuery('#userbox').hide();
         onUserConnected();
-        return chat.connectToUser.connect(onUserAdded);
+        return chat.connectionToUserEstablished.connect(onUserAdded);
       });
     };
     onServerError = function(error) {
