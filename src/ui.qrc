@@ -4,5 +4,11 @@
         <file>ui/css/stylesheets/screen.css</file>
         <file>ui/js/3rdparty/jquery-2.1.4.min.js</file>
         <file>ui/js/dist/app.js</file>
+        <file>ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/material-bootstrap.min.css</file>
+        <file>ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/material-bootstrap.min.js</file>
+        <file>ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/fonts/material/Material-Design-Icons.eot</file>
+        <file>ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/fonts/material/Material-Design-Icons.svg</file>
+        <file>ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/fonts/material/Material-Design-Icons.ttf</file>
+        <file>ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/fonts/material/Material-Design-Icons.woff</file>
     </qresource>
 </RCC>

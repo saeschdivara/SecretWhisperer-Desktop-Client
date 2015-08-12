@@ -10,7 +10,7 @@ onDocumentReady = () ->
 
     create_message_from_me = (message) ->
         jQuery("
-            <div class='message-box my-message'>
+            <div class='message-box my-message blue lighten-3'>
                 <div class='message'>
                     <p>#{message}</p>
                 </div>
@@ -20,7 +20,7 @@ onDocumentReady = () ->
 
     create_message_to_me = (message) ->
         jQuery("
-            <div class='message-box partner-message'>
+            <div class='message-box partner-message blue darken-1'>
                 <div class='message'>
                     <p>#{message}</p>
                 </div>

@@ -7,10 +7,10 @@
     other_user_name = '';
     user_list = [];
     create_message_from_me = function(message) {
-      return jQuery("<div class='message-box my-message'> <div class='message'> <p>" + message + "</p> </div> </div>");
+      return jQuery("<div class='message-box my-message blue lighten-3'> <div class='message'> <p>" + message + "</p> </div> </div>");
     };
     create_message_to_me = function(message) {
-      return jQuery("<div class='message-box partner-message'> <div class='message'> <p>" + message + "</p> </div> </div>");
+      return jQuery("<div class='message-box partner-message blue darken-1'> <div class='message'> <p>" + message + "</p> </div> </div>");
     };
     onUserMessageSend = function() {
       var created_message, message;

@@ -1,61 +1,116 @@
 <html>
 <head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="qrc:/ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/material-bootstrap.min.css"/>
     <link rel="stylesheet" href="qrc:/ui/css/stylesheets/screen.css"/>
     <script src="qrc:/ui/js/3rdparty/jquery-2.1.4.min.js"></script>
+    <script src="qrc:/ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/material-bootstrap.min.js"></script>
     <script src="qrc:/ui/js/dist/app.js"></script>
+
+    <script>
+        jQuery(document).ready(function(){
+            // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
+            jQuery('.modal-trigger').leanModal();
+        });
+    </script>
 </head>
 
 <body>
-<div id="message-board"></div>
-<div id="userbox">
-    My user: <br/>
-    <input type="text" id="username" />
-    <br/>
-    <input id="submit-user-button" type="submit"/>
-</div>
-<div id="otheruserbox">
-    Other user: <br/>
-    <input type="text" id="other-username" />
-    <br/>
-    <button id="submit-other-user-button" type="submit">Add user</button>
-    <button id="cancel-other-user-button" type="submit">No user</button>
-</div>
+<nav>
+    <div class="nav-wrapper">
+        <a href="#" class="brand-logo">Logo</a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="sass.html">Sass</a></li>
+            <li><a href="badges.html">Components</a></li>
+            <li><a href="collapsible.html">JavaScript</a></li>
+        </ul>
+    </div>
+</nav>
 
 <main>
+    <div class="row">
+        <div class="col s4">
+            <a href="#modal1" class="btn-floating btn-large waves-effect waves-light red modal-trigger">
+                <i class="material-icons">add</i>
+            </a>
 
-    <div id="contacts">
-        <!--<div class="contact-box">-->
-            <!--<span>User 1</span> <small>offline</small>-->
-        <!--</div>-->
-        <!--<div class="contact-box">-->
-            <!--<span>User 2</span> <small>connected</small>-->
-        <!--</div>-->
-    </div>
-
-    <div id="chatbox">
-
-        <div id="chat-messages">
-
-            <!--<div class="message-box partner-message">-->
-                <!--<div class="message">-->
-                    <!--<p>Hi</p>-->
-                <!--</div>-->
-            <!--</div>-->
-
-            <!--<div class="message-box my-message">-->
-                <!--<div class="message">-->
-                    <!--<p>Hi</p>-->
-                <!--</div>-->
-            <!--</div>-->
-
+            <div id="contacts" class="collection">
+                <div class="contact-box">
+                    <a href="#!" class="collection-item active">Alvin</a>
+                </div>
+                <div class="contact-box">
+                    <a href="#!" class="collection-item">Testin</a>
+                </div>
+            </div>
 
         </div>
 
+        <div class="col s8">
 
-        <textarea name="chat-input" id="chat-input" cols="30" rows="10"></textarea>
-        <br/>
-        <input id="submit-message-button" type="submit"/>
+            <!-- CHATTING -->
+            <div id="chatbox">
+
+                <div id="chat-messages">
+
+                    <div class="message-box partner-message blue darken-1">
+                        <div class="message">
+                            <p>Hi</p>
+                        </div>
+                    </div>
+
+                    <div class="message-box my-message blue lighten-3">
+                        <div class="message">
+                            <p>Hi</p>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <textarea name="chat-input" id="chat-input" class="materialize-textarea"></textarea>
+                <br/>
+                <button id="submit-message-button" class="btn waves-effect waves-light" type="submit" name="action">
+                    Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </div>
+
+            <div id="userbox">
+                <label for="username">My user:</label> <br/>
+                <input type="text" id="username" />
+                <br/>
+
+                <button id="submit-user-button" class="btn waves-effect waves-light" type="submit" name="action">
+                    Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </div>
+
+            <!-- Modal Structure -->
+            <div id="modal1" class="modal">
+                <div class="modal-content">
+                    <h4>Add new contact</h4>
+
+                    <div id="otheruserbox">
+                        <label for="other-username">Other user:</label> <br/>
+                        <input type="text" id="other-username" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="submit-other-user-button" href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">
+                        Add
+                    </a>
+                </div>
+            </div>
+
+
+
+
+
+        </div>
     </div>
+
+
 </main>
 </body>
 </html>
