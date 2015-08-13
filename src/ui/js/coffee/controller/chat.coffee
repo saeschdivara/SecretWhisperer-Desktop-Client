@@ -49,6 +49,7 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             ###
             ###
 
+            @messages = []
             @active = true
 
 
@@ -82,12 +83,31 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             @current_messages = []
 
 
+        onContactChanged: (contact) ->
+            ###
+            ###
+
+            if @current_contact is contact
+                return
+
+            @current_contact.messages.length = 0
+            @current_contact.messages.push(message) for message in @current_messages
+            @current_contact.active = false
+
+            @current_contact = contact
+
+            @current_messages.length = 0
+            @current_messages.push(message) for message in contact.messages
+            @current_contact.active = true
+
+
         onMessageSend: () ->
             ###
             ###
 
             message = @current_typed_message
             @current_typed_message.length = 0
+            @current_typed_message = ''
 
             chat.sendMessageToUser(@current_contact.username, message)
 
@@ -112,9 +132,17 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             ###
             ###
 
-            @current_messages.push(
-                new ChatMessage(message, false, true)
-            )
+            username = message.contact
+            message_text = message.message
+
+            if @current_contact.username == username
+                @current_messages.push(
+                    new ChatMessage(message_text, false, true)
+                )
+            else
+                for contact in @contacts
+                    if contact.username == username
+                        contact.messages.push(new ChatMessage(message_text, false, true))
 
             $scope.$apply()
 

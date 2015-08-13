@@ -37,11 +37,9 @@
                 <div class="contact-box" ng-repeat="contact in chat.contacts">
                     <a href="#!" class="collection-item"
                        ng-class="{active: contact.active}"
+                       ng-click="chat.onContactChanged(contact)"
                             >{{ contact.username }}</a>
                 </div>
-                <!--<div class="contact-box">-->
-                    <!--<a href="#!" class="collection-item">Testin</a>-->
-                <!--</div>-->
             </div>
 
         </div>

@@ -2,16 +2,16 @@
 
 onDocumentReady = () ->
 
-    my_user_name = ''
-    other_user_name = ''
-
     ############################
     ## MESSAGES CALLBACKS
     ###########################
 
 
     onUserMessageReceived = (username, message) ->
-        create_message_to_me(message)
+        create_message_to_me(
+            contact: username
+            message: message
+        )
 
 
     #############################
@@ -20,19 +20,14 @@ onDocumentReady = () ->
 
     onUserChosen = () ->
 
-        other_user_name = jQuery('#other-username').val()
-        chat.connectToUser(other_user_name)
-
-        _class_instance_MessageQueue.$publish('add-contact', other_user_name)
+        username = jQuery('#other-username').val()
+        chat.connectToUser(username)
 
         jQuery('#chatbox').show()
 
 
     onUserAdded = (username) ->
-        console.log("User added: #{username}")
-        other_user_name = username
         _class_instance_MessageQueue.$publish('add-contact', username)
-
         jQuery('#chatbox').show()
 
 

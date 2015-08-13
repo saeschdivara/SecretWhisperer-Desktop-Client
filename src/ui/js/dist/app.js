@@ -3,27 +3,27 @@
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   onDocumentReady = function() {
-    var my_user_name, onServerConnect, onServerError, onUserAdded, onUserChosen, onUserMessageReceived, other_user_name;
-    my_user_name = '';
-    other_user_name = '';
+    var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserMessageReceived;
     onUserMessageReceived = function(username, message) {
-      return create_message_to_me(message);
+      return create_message_to_me({
+        contact: username,
+        message: message
+      });
     };
     onUserChosen = function() {
-      other_user_name = jQuery('#other-username').val();
-      chat.connectToUser(other_user_name);
-      _class_instance_MessageQueue.$publish('add-contact', other_user_name);
+      var username;
+      username = jQuery('#other-username').val();
+      chat.connectToUser(username);
       return jQuery('#chatbox').show();
     };
     onUserAdded = function(username) {
-      console.log("User added: " + username);
-      other_user_name = username;
       _class_instance_MessageQueue.$publish('add-contact', username);
       return jQuery('#chatbox').show();
     };
     onServerConnect = function() {
       console.log('Connected');
       return jQuery('#submit-user-button').click(function() {
+        var my_user_name;
         console.log('on login button clicked');
         my_user_name = jQuery('#username').val();
         chat.chooseUserName(my_user_name);
@@ -157,6 +157,7 @@
 
           /*
            */
+          this.messages = [];
           this.active = true;
         }
 
@@ -183,6 +184,31 @@
           this.current_messages = [];
         }
 
+        ChatController.prototype.onContactChanged = function(contact) {
+
+          /*
+           */
+          var i, j, len, len1, message, ref, ref1;
+          if (this.current_contact === contact) {
+            return;
+          }
+          this.current_contact.messages.length = 0;
+          ref = this.current_messages;
+          for (i = 0, len = ref.length; i < len; i++) {
+            message = ref[i];
+            this.current_contact.messages.push(message);
+          }
+          this.current_contact.active = false;
+          this.current_contact = contact;
+          this.current_messages.length = 0;
+          ref1 = contact.messages;
+          for (j = 0, len1 = ref1.length; j < len1; j++) {
+            message = ref1[j];
+            this.current_messages.push(message);
+          }
+          return this.current_contact.active = true;
+        };
+
         ChatController.prototype.onMessageSend = function() {
 
           /*
@@ -190,6 +216,7 @@
           var message;
           message = this.current_typed_message;
           this.current_typed_message.length = 0;
+          this.current_typed_message = '';
           chat.sendMessageToUser(this.current_contact.username, message);
           create_message_from_me(message);
           return $scope.$apply();
@@ -207,7 +234,20 @@
 
           /*
            */
-          this.current_messages.push(new ChatMessage(message, false, true));
+          var contact, i, len, message_text, ref, username;
+          username = message.contact;
+          message_text = message.message;
+          if (this.current_contact.username === username) {
+            this.current_messages.push(new ChatMessage(message_text, false, true));
+          } else {
+            ref = this.contacts;
+            for (i = 0, len = ref.length; i < len; i++) {
+              contact = ref[i];
+              if (contact.username === username) {
+                contact.messages.push(new ChatMessage(message_text, false, true));
+              }
+            }
+          }
           return $scope.$apply();
         };
 
