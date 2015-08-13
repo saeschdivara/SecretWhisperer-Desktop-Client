@@ -27,5 +27,8 @@ int main(int argc, char *argv[])
     inspector.setVisible(false);
 #endif
 
+    //Set application name to distinguish settings for each app
+    app.setApplicationName("Secret-Whisperer");
+
     return app.exec();
 }

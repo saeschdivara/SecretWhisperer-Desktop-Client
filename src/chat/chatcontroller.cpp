@@ -1,14 +1,16 @@
 #include "chatcontroller.h"
 
+// QT
+#include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 
 #include <QtNetwork/QSslConfiguration>
 #include <QtNetwork/QSslCertificate>
 #include <QtNetwork/QSslCipher>
 
+// BOTAN
 #include <botan/aes.h>
 #include <botan/serpent.h>
-
 
 #include <botan/aes.h>
 #include <botan/cryptobox.h>
@@ -18,13 +20,24 @@
 #include <botan/pubkey.h>
 #include <botan/pkcs8.h>
 
+// SNORTIFY
+#include <libsnore/snore.h>
+#include <libsnore/notification/notification.h>
+#include <libsnore/log.h>
+
+using namespace Snore;
+
 const size_t SERPENT_KEY_SIZE = 128;
 
 /**
  * @brief ChatController::ChatController
  * @param parent
  */
-ChatController::ChatController(QObject *parent) : QObject(parent)
+ChatController::ChatController(QObject *parent) : QObject(parent),
+    core(SnoreCore::instance()),
+    icon(QString(":/root/snore.png")),
+    snoreApplication(Application(qApp->applicationName(), icon)),
+    alert(Alert(QString("Default"), icon))
 {
     socket = new QSslSocket(this);
 
@@ -51,6 +64,20 @@ ChatController::ChatController(QObject *parent) : QObject(parent)
 
     QSslCertificate certifacte(data);
     socket->addCaCertificate(certifacte);
+
+    // Snortify
+    Snore::SnoreLog::setDebugLvl(1);
+
+    //Get the core
+    Snore::SnoreCore::instance().loadPlugins(
+                Snore::SnorePlugin::BACKEND | Snore::SnorePlugin::SECONDARY_BACKEND
+    );
+
+    //All notifications have to have icon, so prebuild one
+    core.registerApplication(snoreApplication);
+
+    //Also alert is mandatory, just choose the default one
+    snoreApplication.addAlert(alert);
 }
 
 ChatController::~ChatController()
@@ -373,6 +400,17 @@ void ChatController::onMessageEvent(const QByteArray &data)
     qDebug() << "Decrypted message: " << decryptedMessage;
 
     emit receivedUserMessage(username, decryptedMessage);
+
+    // Inform the user of the new message
+    Notification n(snoreApplication, alert,
+                   QStringLiteral("Message from ") + username,
+                   decryptedMessage,
+                   icon);
+
+    // Optional: you can also set delivery date if you want to schedule notification
+    //n.setDeliveryDate(QDateTime::currentDateTime().addSecs(5));
+
+    core.broadcastNotification(n);
 }
 
 /**

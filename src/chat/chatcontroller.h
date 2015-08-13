@@ -7,7 +7,14 @@
 
 #include <QtNetwork/QSslSocket>
 
+// SNORTIFY
+#include <libsnore/snore.h>
+#include <libsnore/notification/notification.h>
+#include <libsnore/log.h>
+
+// LOCAL
 #include "chat/connecteduser.h"
+
 
 class ChatController : public QObject
 {
@@ -47,9 +54,17 @@ protected:
     QByteArray stripRequest(QByteArray data, QByteArray command);
 
 private:
+    // Server connection
     QSslSocket * socket;
 
+    // Contacts
     QHash<QByteArray, ConnectedUser *> connectedUsers;
+
+    // Notfications
+    Snore::SnoreCore &core;
+    Snore::Icon icon;
+    Snore::Application snoreApplication;
+    Snore::Alert alert;
 };
 
 #endif // CHATCONTROLLER_H

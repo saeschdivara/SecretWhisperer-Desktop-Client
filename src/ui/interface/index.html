@@ -1,11 +1,10 @@
-<html>
+<html ng-app="chatApp">
 <head>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="qrc:/ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/material-bootstrap.min.css"/>
+    <link rel="stylesheet" href="qrc:/ui/css/3rdparty/materialize/css/materialize.min.css"/>
     <link rel="stylesheet" href="qrc:/ui/css/stylesheets/screen.css"/>
     <script src="qrc:/ui/js/3rdparty/jquery-2.1.4.min.js"></script>
-    <script src="qrc:/ui/css/3rdparty/SASS-Material-Design-for-Bootstrap/material-bootstrap.min.js"></script>
-    <script src="qrc:/ui/js/dist/app.js"></script>
+    <script src="qrc:/ui/css/3rdparty/materialize/js/materialize.min.js"></script>
 
     <script>
         jQuery(document).ready(function(){
@@ -15,7 +14,7 @@
     </script>
 </head>
 
-<body>
+<body ng-controller="ChatController as chat">
 <nav>
     <div class="nav-wrapper">
         <a href="#" class="brand-logo">Logo</a>
@@ -35,12 +34,14 @@
             </a>
 
             <div id="contacts" class="collection">
-                <div class="contact-box">
-                    <a href="#!" class="collection-item active">Alvin</a>
+                <div class="contact-box" ng-repeat="contact in chat.contacts">
+                    <a href="#!" class="collection-item"
+                       ng-class="{active: contact.active}"
+                            >{{ contact.username }}</a>
                 </div>
-                <div class="contact-box">
-                    <a href="#!" class="collection-item">Testin</a>
-                </div>
+                <!--<div class="contact-box">-->
+                    <!--<a href="#!" class="collection-item">Testin</a>-->
+                <!--</div>-->
             </div>
 
         </div>
@@ -51,25 +52,32 @@
             <div id="chatbox">
 
                 <div id="chat-messages">
+                    <!-- MESSAGES ARE BEING ADDED HERE -->
 
-                    <div class="message-box partner-message blue darken-1">
-                        <div class="message">
-                            <p>Hi</p>
-                        </div>
-                    </div>
+                    <div class='message-box'
+                         ng-repeat="message in chat.current_messages">
 
-                    <div class="message-box my-message blue lighten-3">
-                        <div class="message">
-                            <p>Hi</p>
+                        <div class='partner-message blue darken-1' ng-if="message.is_from_contact">
+                            <div class='message'>
+                                <p>{{ message.text() }}</p>
+                            </div>
                         </div>
+
+                        <div class='my-message blue lighten-3' ng-if="message.is_from_me">
+                            <div class='message'>
+                                <p>{{ message.text() }}</p>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
 
 
-                <textarea name="chat-input" id="chat-input" class="materialize-textarea"></textarea>
+                <textarea name="chat-input" id="chat-input" class="materialize-textarea"
+                          ng-model="chat.current_typed_message"></textarea>
                 <br/>
-                <button id="submit-message-button" class="btn waves-effect waves-light" type="submit" name="action">
+                <button id="submit-message-button" class="btn waves-effect waves-light" ng-click="chat.onMessageSend()">
                     Submit
                     <i class="material-icons right">send</i>
                 </button>
@@ -80,7 +88,7 @@
                 <input type="text" id="username" />
                 <br/>
 
-                <button id="submit-user-button" class="btn waves-effect waves-light" type="submit" name="action">
+                <button id="submit-user-button" class="btn waves-effect waves-light">
                     Submit
                     <i class="material-icons right">send</i>
                 </button>
@@ -103,14 +111,15 @@
                 </div>
             </div>
 
-
-
-
-
         </div>
     </div>
 
 
 </main>
+
+
+<script src="qrc:/ui/js/3rdparty/angular/angular.min.js"></script>
+<script src="qrc:/ui/js/dist/app.js"></script>
+
 </body>
 </html>
