@@ -18,13 +18,13 @@ include(deployment.pri)
 DISTFILES += \
     ui/interface/index.html
 
-# Lib Botan
+# Lib Botan: https://github.com/randombit/botan
 unix|win32: LIBS += -L/usr/local/lib/ -lbotan-1.11
 
 INCLUDEPATH += /usr/local/include/botan-1.11/
 DEPENDPATH += /usr/local/include/botan-1.11/
 
-# Lib Snortify
+# Lib Snortify: https://github.com/Snorenotify/Snorenotify
 unix|win32: LIBS += -L/usr/local/lib/ -lsnore-qt5
 
 INCLUDEPATH += /usr/local/include/
