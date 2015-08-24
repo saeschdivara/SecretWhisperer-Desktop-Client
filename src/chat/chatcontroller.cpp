@@ -3,22 +3,21 @@
 // QT
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
+#include <QtCore/QThread>
 
 #include <QtNetwork/QSslConfiguration>
 #include <QtNetwork/QSslCertificate>
 #include <QtNetwork/QSslCipher>
 
 // BOTAN
-#include <botan/aes.h>
-#include <botan/serpent.h>
-
-#include <botan/aes.h>
-#include <botan/cryptobox.h>
 #include <botan/botan.h>
-#include <botan/rsa.h>
+#include <botan/cryptobox.h>
+#include <botan/lzma.h>
 #include <botan/pk_keys.h>
 #include <botan/pubkey.h>
 #include <botan/pkcs8.h>
+#include <botan/rsa.h>
+#include <botan/serpent.h>
 
 // SNORTIFY
 #include <libsnore/snore.h>
@@ -100,7 +99,26 @@ void ChatController::onConnectionEstablished()
  */
 void ChatController::onServerData()
 {
-    QByteArray data = socket->readAll();
+    disconnect( socket, &QTcpSocket::readyRead, this, &ChatController::onServerData );
+
+    QByteArray data, tempData;
+
+    qDebug() << "Receiving data";
+
+    while ( !socket->atEnd() || !data.contains("\r\n\r\n") ) {
+        tempData = socket->read(1024);
+
+        if ( tempData.size() > 0 ) {
+            data.append(tempData);
+        }
+        else {
+            QThread::currentThread()->msleep(100);
+        }
+
+        qApp->processEvents();
+    }
+
+    connect( socket, &QTcpSocket::readyRead, this, &ChatController::onServerData );
 
     qDebug() << "Received server data";
 
@@ -229,10 +247,14 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
     socket->write(
                     QByteArrayLiteral("SEND:") +
                     username.toUtf8() +
-                    QByteArrayLiteral("\r\n") +
-                    encryptedMessage +
-                    QByteArrayLiteral("\r\n\r\n")
+                    QByteArrayLiteral("\r\n")
                 );
+
+    qDebug() << "Send data";
+    socket->waitForBytesWritten();
+    qDebug() << "Data written";
+
+    sendSplittedData(encryptedMessage, 1024);
 }
 
 /**
@@ -411,6 +433,35 @@ void ChatController::onMessageEvent(const QByteArray &data)
     //n.setDeliveryDate(QDateTime::currentDateTime().addSecs(5));
 
     core.broadcastNotification(n);
+}
+
+void ChatController::sendSplittedData(QByteArray &data, quint64 max_piece_size)
+{
+    quint64 data_size = data.size();
+
+    qDebug() << "Started sending";
+
+    while ( data_size > 0 ) {
+
+        if ( data_size >= max_piece_size ) {
+            data_size -= max_piece_size;
+
+            QByteArray tempData = data.left(max_piece_size);
+            socket->write(tempData);
+            socket->waitForBytesWritten();
+            qDebug() << "Data written";
+            data = data.remove(0, max_piece_size);
+        }
+        else {
+            data_size = 0;
+            socket->write(data + QByteArrayLiteral("\r\n\r\n"));
+            socket->waitForBytesWritten();
+            data.clear();
+        }
+
+    }
+
+    qDebug() << "Finished sending";
 }
 
 /**

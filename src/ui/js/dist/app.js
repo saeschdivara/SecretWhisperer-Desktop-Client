@@ -177,11 +177,14 @@
           this.onContactAdded = bind(this.onContactAdded, this);
           this.onMessageFromContact = bind(this.onMessageFromContact, this);
           this.onMessageFromMe = bind(this.onMessageFromMe, this);
+          this.onUploadFile = bind(this.onUploadFile, this);
+          this.onMessageSend = bind(this.onMessageSend, this);
 
           /*
            */
           this.contacts = [];
           this.current_messages = [];
+          this.is_file_chosen = false;
         }
 
         ChatController.prototype.onContactChanged = function(contact) {
@@ -213,13 +216,35 @@
 
           /*
            */
-          var message;
+          var files, message, reader;
           message = this.current_typed_message;
           this.current_typed_message.length = 0;
           this.current_typed_message = '';
-          chat.sendMessageToUser(this.current_contact.username, message);
-          create_message_from_me(message);
-          return $scope.$apply();
+          if (!this.is_file_chosen) {
+            chat.sendMessageToUser(this.current_contact.username, message);
+          } else {
+            reader = new FileReader();
+            reader.onload = (function(_this) {
+              return function() {
+                var url;
+                url = reader.result;
+                console.log(url);
+                return chat.sendMessageToUser(_this.current_contact.username, url);
+              };
+            })(this);
+            files = jQuery('#file-input-button')[0].files;
+            reader.readAsDataURL(files[0]);
+            this.is_file_chosen = false;
+          }
+          return create_message_from_me(message);
+        };
+
+        ChatController.prototype.onUploadFile = function() {
+
+          /*
+           */
+          jQuery('#file-input-button').click();
+          return this.is_file_chosen = true;
         };
 
         ChatController.prototype.onMessageFromMe = function(message) {

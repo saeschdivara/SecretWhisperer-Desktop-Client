@@ -1,4 +1,159 @@
 
+
+onDocumentReady = () ->
+
+    ############################
+    ## MESSAGES CALLBACKS
+    ###########################
+
+
+    onUserMessageReceived = (username, message) ->
+        create_message_to_me(
+            contact: username
+            message: message
+        )
+
+
+    #############################
+    ## USER CALLBACKS
+    #############################
+
+    onUserChosen = () ->
+
+        username = jQuery('#other-username').val()
+        chat.connectToUser(username)
+
+        jQuery('#chatbox').show()
+
+
+    onUserAdded = (username) ->
+        _class_instance_MessageQueue.$publish('add-contact', username)
+        jQuery('#chatbox').show()
+
+
+    onServerConnect = () ->
+        console.log('Connected')
+
+        jQuery('#submit-user-button').click(
+            () ->
+
+                console.log('on login button clicked')
+
+                my_user_name = jQuery('#username').val()
+
+                chat.chooseUserName(my_user_name)
+
+                jQuery('#userbox').hide()
+
+                jQuery('#submit-other-user-button').click(onUserChosen)
+
+                chat.connectionToUserEstablished.connect(onUserAdded)
+                chat.receivedUserMessage.connect(onUserMessageReceived)
+        )
+
+    onServerError = (error) ->
+        console.log(error)
+
+
+    chat.connected.connect(onServerConnect)
+    chat.error.connect(onServerError)
+    chat.connectToServer('localhost', 8888)
+
+    console.log('connected to the server')
+
+    jQuery('#chatbox').hide()
+
+
+
+jQuery(document).ready(onDocumentReady)
+
+create_message_from_me = (message) ->
+    _class_instance_MessageQueue.$publish('new-message-from-me', message)
+
+
+create_message_to_me = (message) ->
+    _class_instance_MessageQueue.$publish('new-message-from-other', message)
+chatApp = angular.module('chatApp', [])
+
+_class_instance_MessageQueue = null
+ 
+chatApp.factory('MessageQueue', [() ->
+ 
+    class MessageQueue
+     
+        ########################
+        ## PRIVATE PROPERTIES ##
+        ########################
+
+        _channels: {}
+     
+     
+        #######################
+        ## PUBLIC PROPERTIES ##
+        #######################
+     
+     
+        ####################
+        ## PUBLIC METHODS ##
+        ####################
+     
+        constructor: () ->
+            ###
+            ###
+
+
+        $subscribe: (channel, subscriber) ->
+            ###
+            ###
+
+
+            if not @_channels.hasOwnProperty(channel)
+                @_channels[channel] = []
+
+            @_channels[channel].push(subscriber)
+
+
+        $publish: (channel, message) ->
+            ###
+            ###
+
+            if @_channels.hasOwnProperty(channel)
+                for subscriber in @_channels[channel]
+                    subscriber(message)
+
+     
+     
+        @$instance: () ->
+            ###
+            ###
+     
+            if not _class_instance_MessageQueue?
+                # Create instance
+                _class_instance_MessageQueue = new MessageQueue()
+     
+            return _class_instance_MessageQueue
+     
+        #####################
+        ## PRIVATE METHODS ##
+        #####################
+ 
+    # Return the factory
+    MessageQueue.$instance()
+])
+
+
+log = (message) ->
+    jQuery('#message-board').append("<span>#{message}</span>")
+
+
+getRandomHexString = () ->
+    ###
+     Generates random hex number string
+
+     @return {String}
+    ###
+    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
+
 _class_instance_ChatController = null
 
 chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($rootScope, $scope, MessageQueue) ->

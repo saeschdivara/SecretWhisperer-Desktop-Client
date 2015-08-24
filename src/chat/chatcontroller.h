@@ -49,6 +49,9 @@ protected:
     void onMessageEvent(const QByteArray & data);
 
     // Helper methods
+
+    void sendSplittedData(QByteArray & data, quint64 max_piece_size);
+
     QByteArray encrypt(const QByteArray & input, const Botan::SymmetricKey & key);
     QByteArray decrypt(const QByteArray & input, const Botan::SymmetricKey & key);
     QByteArray stripRequest(QByteArray data, QByteArray command);
