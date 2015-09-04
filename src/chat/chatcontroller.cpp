@@ -12,7 +12,6 @@
 // BOTAN
 #include <botan/botan.h>
 #include <botan/cryptobox.h>
-#include <botan/lzma.h>
 #include <botan/pk_keys.h>
 #include <botan/pubkey.h>
 #include <botan/pkcs8.h>
