@@ -7,5 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Sascha Häusler <saeschdivara@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "grunt-contrib-uglify": "~0.9.2",
+    "grunt-contrib-coffee": "~0.13.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-compass": "~1.0.3"
+  }
 }
