@@ -57,7 +57,7 @@ onDocumentReady = () ->
 
     chat.connected.connect(onServerConnect)
     chat.error.connect(onServerError)
-    chat.connectToServer('localhost', 8888)
+    chat.connectToServer(window.CHAT_SERVER_URL, 8888)
 
     console.log('connected to the server')
 

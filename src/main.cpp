@@ -19,6 +19,13 @@ int main(int argc, char *argv[])
     // Expose objects to javascript
     webview.page()->mainFrame()->addToJavaScriptWindowObject(QStringLiteral("chat"), &chat);
 
+    // Set chat server url
+    if ( app.arguments().size() >= 2 ) {
+        QString url = app.arguments().at(1);
+        QString command = QString("window.CHAT_SERVER_URL = '%1'").arg(url);
+        webview.page()->mainFrame()->evaluateJavaScript(command);
+    }
+
 #if WHISPERER_DEBUG_BUILD
     webview.page()->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
 

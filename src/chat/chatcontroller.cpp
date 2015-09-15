@@ -38,6 +38,7 @@ ChatController::ChatController(QObject *parent) : QObject(parent),
     alert(Alert(QString("Default"), icon))
 {
     socket = new QSslSocket(this);
+    connector = new Connector(socket, this);
 
     // Ciphers allowed
     QList<QSslCipher> ciphers;
@@ -57,7 +58,6 @@ ChatController::ChatController(QObject *parent) : QObject(parent),
     caFile.open(QIODevice::ReadOnly);
 
     QByteArray data = caFile.readAll();
-
     caFile.close();
 
     QSslCertificate certifacte(data);
@@ -96,28 +96,8 @@ void ChatController::onConnectionEstablished()
 /**
  * @brief ChatController::onServerData
  */
-void ChatController::onServerData()
+void ChatController::onServerData(QByteArray & data)
 {
-    disconnect( socket, &QTcpSocket::readyRead, this, &ChatController::onServerData );
-
-    QByteArray data, tempData;
-
-    qDebug() << "Receiving data";
-
-    while ( !socket->atEnd() || !data.contains("\r\n\r\n") ) {
-        tempData = socket->read(1024);
-
-        if ( tempData.size() > 0 ) {
-            data.append(tempData);
-        }
-        else {
-            QThread::currentThread()->msleep(100);
-        }
-
-        qApp->processEvents();
-    }
-
-    connect( socket, &QTcpSocket::readyRead, this, &ChatController::onServerData );
 
     qDebug() << "Received server data";
 
@@ -145,6 +125,12 @@ void ChatController::onError(const QList<QSslError> &errors)
     qDebug() << "Error String: " << socket->errorString();
 }
 
+void ChatController::onSocketError(QAbstractSocket::SocketError error)
+{
+    qWarning() << "Error: " << error;
+    qWarning() << "Error String: " << socket->errorString();
+}
+
 /**
  * @brief ChatController::connectToServer
  * @param url
@@ -154,10 +140,15 @@ void ChatController::connectToServer(const QString &url, quint16 port)
 {
     // Connections
     connect(socket, &QSslSocket::encrypted, this, &ChatController::connected);
-    connect(socket, &QSslSocket::readyRead, this, &ChatController::onServerData);
+    connect(connector, &Connector::newData, this, &ChatController::onServerData );
+
+    connector->listen();
 
     connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
             this, SIGNAL(error(QAbstractSocket::SocketError)));
+
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(onSocketError(QAbstractSocket::SocketError)));
 
     connect(socket, SIGNAL(sslErrors(QList<QSslError>)),
             this, SLOT(onError(QList<QSslError>)));
@@ -173,7 +164,7 @@ void ChatController::connectToServer(const QString &url, quint16 port)
 void ChatController::chooseUserName(const QString &username)
 {
     qDebug() << "Choosing username";
-    socket->write(
+    connector->send(
                     QByteArrayLiteral("USER:") +
                     username.toUtf8() +
                     QByteArrayLiteral("\r\n\r\n")
@@ -210,7 +201,7 @@ void ChatController::connectToUser(const QString &username)
 
             emit connectionToUserEstablished(username);
 
-            socket->write(
+            connector->send(
                             QByteArrayLiteral("CONNECT:") +
                             username.toUtf8() +
                             QByteArrayLiteral("\r\n") +
@@ -243,17 +234,13 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
 
     qDebug() << "Encrypted message: " << encryptedMessage;
 
-    socket->write(
+    connector->send(
                     QByteArrayLiteral("SEND:") +
                     username.toUtf8() +
-                    QByteArrayLiteral("\r\n")
+                    QByteArrayLiteral("\r\n") +
+                    encryptedMessage +
+                    QByteArrayLiteral("\r\n\r\n")
                 );
-
-    qDebug() << "Send data";
-    socket->waitForBytesWritten();
-    qDebug() << "Data written";
-
-    sendSplittedData(encryptedMessage, 1024);
 }
 
 /**
@@ -268,12 +255,12 @@ void ChatController::onStartupEvent(const QByteArray &data)
     int seperatorIndex = messageData.indexOf(seperator);
 
     if ( seperatorIndex == -1 ) {
-        socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
         return;
     }
 
     if ( seperatorIndex == 0 ) {
-        socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
         return;
     }
 
@@ -322,7 +309,7 @@ void ChatController::onStartupEvent(const QByteArray &data)
         keyCipherData[i] = ciphertext.at(i);
     }
 
-    socket->write(
+    connector->send(
                 QByteArrayLiteral("ENCRYPT:") +
                 username +
                 seperator +
@@ -343,12 +330,12 @@ void ChatController::onEncryptEvent(const QByteArray &data)
     int seperatorIndex = messageData.indexOf(seperator);
 
     if ( seperatorIndex == -1 ) {
-        socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
         return;
     }
 
     if ( seperatorIndex == 0 ) {
-        socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
         return;
     }
 
@@ -403,12 +390,12 @@ void ChatController::onMessageEvent(const QByteArray &data)
     int seperatorIndex = messageData.indexOf(seperator);
 
     if ( seperatorIndex == -1 ) {
-        socket->write(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
         return;
     }
 
     if ( seperatorIndex == 0 ) {
-        socket->write(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
         return;
     }
 
@@ -432,35 +419,6 @@ void ChatController::onMessageEvent(const QByteArray &data)
     //n.setDeliveryDate(QDateTime::currentDateTime().addSecs(5));
 
     core.broadcastNotification(n);
-}
-
-void ChatController::sendSplittedData(QByteArray &data, quint64 max_piece_size)
-{
-    quint64 data_size = data.size();
-
-    qDebug() << "Started sending";
-
-    while ( data_size > 0 ) {
-
-        if ( data_size >= max_piece_size ) {
-            data_size -= max_piece_size;
-
-            QByteArray tempData = data.left(max_piece_size);
-            socket->write(tempData);
-            socket->waitForBytesWritten();
-            qDebug() << "Data written";
-            data = data.remove(0, max_piece_size);
-        }
-        else {
-            data_size = 0;
-            socket->write(data + QByteArrayLiteral("\r\n\r\n"));
-            socket->waitForBytesWritten();
-            data.clear();
-        }
-
-    }
-
-    qDebug() << "Finished sending";
 }
 
 /**
@@ -507,7 +465,7 @@ QByteArray ChatController::stripRequest(QByteArray data, QByteArray command)
     const QByteArray endLiteral("\r\n\r\n");
 
     if ( data.indexOf(command) != 0 ) {
-        socket->write(QByteArrayLiteral("ERROR:UNKNOWN COMMAND\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:UNKNOWN COMMAND\r\n\r\n"));
         socket->close();
         return QByteArrayLiteral("");
     }
@@ -516,7 +474,7 @@ QByteArray ChatController::stripRequest(QByteArray data, QByteArray command)
 
     int endIndex = data.indexOf(endLiteral);
     if ( endIndex == -1 ) {
-        socket->write(QByteArrayLiteral("ERROR:NO END\r\n\r\n"));
+        connector->send(QByteArrayLiteral("ERROR:NO END\r\n\r\n"));
         socket->close();
         return QByteArrayLiteral("");
     }

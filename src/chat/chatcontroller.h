@@ -14,6 +14,7 @@
 
 // LOCAL
 #include "chat/connecteduser.h"
+#include "chat/connector.h"
 
 
 class ChatController : public QObject
@@ -32,8 +33,9 @@ signals:
 public slots:
 
     void onConnectionEstablished();
-    void onServerData();
+    void onServerData(QByteArray &data);
     void onError(const QList<QSslError> &errors);
+    void onSocketError(QAbstractSocket::SocketError error);
 
     // User Actions
     void connectToServer(const QString &url, quint16 port);
@@ -50,8 +52,6 @@ protected:
 
     // Helper methods
 
-    void sendSplittedData(QByteArray & data, quint64 max_piece_size);
-
     QByteArray encrypt(const QByteArray & input, const Botan::SymmetricKey & key);
     QByteArray decrypt(const QByteArray & input, const Botan::SymmetricKey & key);
     QByteArray stripRequest(QByteArray data, QByteArray command);
@@ -59,6 +59,7 @@ protected:
 private:
     // Server connection
     QSslSocket * socket;
+    Connector * connector;
 
     // Contacts
     QHash<QByteArray, ConnectedUser *> connectedUsers;
