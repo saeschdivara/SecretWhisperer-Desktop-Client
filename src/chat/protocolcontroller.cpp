@@ -42,6 +42,17 @@ ConnectedUser *ProtocolController::createUser()
     return new ConnectedUser(pair.publicKey, pair.privateKey, false);
 }
 
+void ProtocolController::createSymmetricKeyForUser(ConnectedUser *user)
+{
+    Botan::SymmetricKey key = encryptor->createSymmetricKey();
+    user->setSymmetricKey(key);
+}
+
+QByteArray ProtocolController::encryptWithAsymmetricKey(ConnectedUser *user, std::string &data)
+{
+    return encryptor->encryptAsymmetricly(user, data);
+}
+
 void ProtocolController::onServerDataEvent(QByteArray &data)
 {
     //

@@ -9,6 +9,8 @@
 #include <botan/pk_keys.h>
 #include <botan/rsa.h>
 
+#include "chat/connecteduser.h"
+
 struct KeyPair {
     Botan::Public_Key * publicKey;
     Botan::Private_Key * privateKey;
@@ -21,6 +23,9 @@ public:
     explicit Encryptor(QObject *parent = 0);
 
     KeyPair createAsymmetricKeys();
+    Botan::SymmetricKey createSymmetricKey();
+
+    QByteArray encryptAsymmetricly(ConnectedUser * user, std::string & data);
 
 signals:
 

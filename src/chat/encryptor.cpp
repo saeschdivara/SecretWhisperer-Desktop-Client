@@ -1,8 +1,9 @@
 #include "encryptor.h"
 
+const size_t SERPENT_KEY_SIZE = 128;
+
 Encryptor::Encryptor(QObject *parent) : QObject(parent)
 {
-
 }
 
 KeyPair Encryptor::createAsymmetricKeys()
@@ -27,5 +28,37 @@ KeyPair Encryptor::createAsymmetricKeys()
     pair.privateKey = privateRsaKey;
 
     return pair;
+}
+
+Botan::SymmetricKey Encryptor::createSymmetricKey()
+{
+    Botan::AutoSeeded_RNG rng;
+    Botan::SymmetricKey serpentKey(rng, SERPENT_KEY_SIZE);
+
+    return serpentKey;
+}
+
+QByteArray Encryptor::encryptAsymmetricly(ConnectedUser *user, std::string &data)
+{
+    const int DATA_SIZE = data.size();
+    Botan::byte msgtoencrypt[DATA_SIZE];
+
+    for (unsigned int i = 0; i < DATA_SIZE; i++)
+    {
+        msgtoencrypt[i] = data[i];
+    }
+
+    Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
+    Botan::AutoSeeded_RNG rng;
+    std::vector<Botan::byte> ciphertext = encryptor.encrypt(msgtoencrypt, DATA_SIZE, rng);
+
+    QByteArray keyCipherData;
+    keyCipherData.resize(ciphertext.size());
+
+    for ( uint i = 0; i < ciphertext.size(); i++ ) {
+        keyCipherData[i] = ciphertext.at(i);
+    }
+
+    return keyCipherData;
 }
 

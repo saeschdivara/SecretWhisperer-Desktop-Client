@@ -19,8 +19,6 @@
 
 using namespace Snore;
 
-const size_t SERPENT_KEY_SIZE = 128;
-
 /**
  * @brief ChatController::ChatController
  * @param parent
@@ -249,29 +247,10 @@ void ChatController::onStartupEvent(const QByteArray &data)
 
     emit connectionToUserEstablished(username);
 
-    Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
+    protocol->createSymmetricKeyForUser(user);
 
-    Botan::AutoSeeded_RNG rng;
-    Botan::SymmetricKey serpentKey(rng, SERPENT_KEY_SIZE);
-    user->setSymmetricKey(serpentKey);
-
-    std::string serpentString = serpentKey.as_string();
-    const int HEX_KEY_SIZE = serpentString.size();
-    Botan::byte msgtoencrypt[HEX_KEY_SIZE];
-
-    for (unsigned int i = 0; i < HEX_KEY_SIZE; i++)
-    {
-        msgtoencrypt[i] = serpentString[i];
-    }
-
-    std::vector<Botan::byte> ciphertext = encryptor.encrypt(msgtoencrypt, HEX_KEY_SIZE, rng);
-
-    QByteArray keyCipherData;
-    keyCipherData.resize(ciphertext.size());
-
-    for ( uint i = 0; i < ciphertext.size(); i++ ) {
-        keyCipherData[i] = ciphertext.at(i);
-    }
+    std::string serpentString = user->symmetricKey().as_string();
+    QByteArray keyCipherData = protocol->encryptWithAsymmetricKey(user, serpentString);
 
     connector->send(
                 QByteArrayLiteral("ENCRYPT:") +
