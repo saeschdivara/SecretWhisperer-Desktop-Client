@@ -2,15 +2,16 @@
 #define CONNECTOR_H
 
 #include <QObject>
-#include <QtNetwork/QTcpSocket>
+#include <QtNetwork/QSslSocket>
 
 class Connector : public QObject
 {
     Q_OBJECT
 public:
-    explicit Connector(QTcpSocket * socket, QObject *parent = 0);
-    void listen();
+    explicit Connector(QSslSocket *socket, QObject *parent = 0);
 
+    // Connection
+    void listen();
     void send(const QByteArray & data);
 
 signals:
@@ -22,7 +23,7 @@ public slots:
     void onClose();
 
 private:
-    QTcpSocket * socket;
+    QSslSocket * socket;
 };
 
 #endif // CONNECTOR_H

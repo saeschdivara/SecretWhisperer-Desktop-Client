@@ -1,9 +1,8 @@
 #include "connector.h"
 
-Connector::Connector(QTcpSocket *socket, QObject *parent) : QObject(parent),
+Connector::Connector(QSslSocket *socket, QObject *parent) : QObject(parent),
     socket(socket)
 {
-
 }
 
 void Connector::listen()

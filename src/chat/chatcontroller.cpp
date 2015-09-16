@@ -5,18 +5,12 @@
 #include <QtCore/QFile>
 #include <QtCore/QThread>
 
-#include <QtNetwork/QSslConfiguration>
-#include <QtNetwork/QSslCertificate>
-#include <QtNetwork/QSslCipher>
-
 // BOTAN
-#include <botan/botan.h>
 #include <botan/cryptobox.h>
-#include <botan/pk_keys.h>
-#include <botan/pubkey.h>
-#include <botan/pkcs8.h>
-#include <botan/rsa.h>
 #include <botan/serpent.h>
+#include <botan/hmac.h>
+#include <botan/sha160.h>
+#include <botan/dlies.h>
 
 // SNORTIFY
 #include <libsnore/snore.h>
@@ -35,33 +29,14 @@ ChatController::ChatController(QObject *parent) : QObject(parent),
     core(SnoreCore::instance()),
     icon(QString(":/root/snore.png")),
     snoreApplication(Application(qApp->applicationName(), icon)),
-    alert(Alert(QString("Default"), icon))
+    alert(Alert(QString("Default"), icon)),
+
+    // Connection objects
+    socket(new QSslSocket(this)),
+    connector(new Connector(socket, this)),
+    protocol(new ProtocolController(this))
 {
-    socket = new QSslSocket(this);
-    connector = new Connector(socket, this);
-
-    // Ciphers allowed
-    QList<QSslCipher> ciphers;
-
-    ciphers << QSslCipher("ECDHE-RSA-AES256-GCM-SHA384");
-
-    // Update config
-    QSslConfiguration config = socket->sslConfiguration();
-    config.setProtocol(QSsl::TlsV1_2);
-
-    // Set allowed ciphers
-    config.setCiphers(ciphers);
-
-    socket->setSslConfiguration(config);
-
-    QFile caFile("certificates/cert.pem");
-    caFile.open(QIODevice::ReadOnly);
-
-    QByteArray data = caFile.readAll();
-    caFile.close();
-
-    QSslCertificate certifacte(data);
-    socket->addCaCertificate(certifacte);
+    protocol->prepareConnection(socket);
 
     // Snortify
     Snore::SnoreLog::setDebugLvl(1);
@@ -181,31 +156,20 @@ void ChatController::connectToUser(const QString &username)
 
     try
         {
-            Botan::AutoSeeded_RNG rng;
-
-            Botan::RSA_PrivateKey key(rng, 4096);
-
-            std::string pub = Botan::X509::PEM_encode(key);
-
-            std::string priv = Botan::PKCS8::PEM_encode(key);
-
-            Botan::DataSource_Memory key_pub(pub);
-
-            Botan::DataSource_Memory key_priv(priv);
-
-            auto publicRsaKey = Botan::X509::load_key(key_pub);
-            auto privateRsaKey = Botan::PKCS8::load_key(key_priv, rng);
-
-            ConnectedUser * user = new ConnectedUser(publicRsaKey, privateRsaKey, false);
+            // Add user to internal user list
+            ConnectedUser * user = protocol->createUser();
             connectedUsers.insert(username.toUtf8(), user);
+
+            QByteArray pub = user->getDataFromPublicKey();
 
             emit connectionToUserEstablished(username);
 
+            // Send public key to the other user
             connector->send(
                             QByteArrayLiteral("CONNECT:") +
                             username.toUtf8() +
                             QByteArrayLiteral("\r\n") +
-                            QString::fromStdString(pub).toUtf8() +
+                            pub +
                             QByteArrayLiteral("\r\n\r\n")
                         );
         }
@@ -285,9 +249,9 @@ void ChatController::onStartupEvent(const QByteArray &data)
 
     emit connectionToUserEstablished(username);
 
-    Botan::AutoSeeded_RNG rng;
     Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
 
+    Botan::AutoSeeded_RNG rng;
     Botan::SymmetricKey serpentKey(rng, SERPENT_KEY_SIZE);
     user->setSymmetricKey(serpentKey);
 

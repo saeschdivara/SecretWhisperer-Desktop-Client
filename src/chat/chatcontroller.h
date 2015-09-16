@@ -15,6 +15,7 @@
 // LOCAL
 #include "chat/connecteduser.h"
 #include "chat/connector.h"
+#include "chat/protocolcontroller.h"
 
 
 class ChatController : public QObject
@@ -60,6 +61,7 @@ private:
     // Server connection
     QSslSocket * socket;
     Connector * connector;
+    ProtocolController * protocol;
 
     // Contacts
     QHash<QByteArray, ConnectedUser *> connectedUsers;

@@ -35,6 +35,9 @@ public:
         return encryptionKey;
     }
 
+
+    QByteArray getDataFromPublicKey();
+
 signals:
 
 public slots:

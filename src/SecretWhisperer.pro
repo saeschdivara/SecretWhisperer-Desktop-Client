@@ -8,7 +8,9 @@ CONFIG += c++11
 SOURCES += main.cpp \
     chat/chatcontroller.cpp \
     chat/connecteduser.cpp \
-    chat/connector.cpp
+    chat/connector.cpp \
+    chat/encryptor.cpp \
+    chat/protocolcontroller.cpp
 
 RESOURCES += \
     ui.qrc
@@ -44,4 +46,6 @@ debug {
 HEADERS += \
     chat/chatcontroller.h \
     chat/connecteduser.h \
-    chat/connector.h
+    chat/connector.h \
+    chat/encryptor.h \
+    chat/protocolcontroller.h
