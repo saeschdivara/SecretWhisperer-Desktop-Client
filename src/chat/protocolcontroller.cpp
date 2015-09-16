@@ -42,6 +42,14 @@ ConnectedUser *ProtocolController::createUser()
     return new ConnectedUser(pair.publicKey, pair.privateKey, false);
 }
 
+ConnectedUser *ProtocolController::createUserFromPublicKey(QByteArray &publicKey)
+{
+    Botan::DataSource_Memory key_pub(publicKey.toStdString());
+    auto publicRsaKey = Botan::X509::load_key(key_pub);
+
+    return new ConnectedUser(publicRsaKey);
+}
+
 void ProtocolController::createSymmetricKeyForUser(ConnectedUser *user)
 {
     Botan::SymmetricKey key = encryptor->createSymmetricKey();
@@ -51,6 +59,21 @@ void ProtocolController::createSymmetricKeyForUser(ConnectedUser *user)
 QByteArray ProtocolController::encryptWithAsymmetricKey(ConnectedUser *user, std::string &data)
 {
     return encryptor->encryptAsymmetricly(user, data);
+}
+
+QByteArray ProtocolController::decryptWithAsymmetricKey(ConnectedUser *user, QByteArray &data)
+{
+    return encryptor->decryptAsymmetricly(user, data);
+}
+
+QByteArray ProtocolController::encryptWithSymmetricKey(ConnectedUser *user, QByteArray &data)
+{
+    return encryptor->encryptSymmetricly(user, data);
+}
+
+QByteArray ProtocolController::decryptWithSymmetricKey(ConnectedUser *user, QByteArray &data)
+{
+    return encryptor->decryptSymmetricly(user, data);
 }
 
 void ProtocolController::onServerDataEvent(QByteArray &data)

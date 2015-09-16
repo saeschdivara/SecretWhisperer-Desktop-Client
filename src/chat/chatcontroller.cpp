@@ -6,7 +6,6 @@
 #include <QtCore/QThread>
 
 // BOTAN
-#include <botan/cryptobox.h>
 #include <botan/serpent.h>
 #include <botan/hmac.h>
 #include <botan/sha160.h>
@@ -191,8 +190,9 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
         return;
     }
 
-    auto key = connectedUsers.value(username.toUtf8())->symmetricKey();
-    QByteArray encryptedMessage = encrypt(message.toUtf8(), key);
+    ConnectedUser * user = connectedUsers.value(username.toUtf8());
+    QByteArray messageData = message.toUtf8();
+    QByteArray encryptedMessage = protocol->encryptWithSymmetricKey(user, messageData);
 
     qDebug() << "Encrypted message: " << encryptedMessage;
 
@@ -233,10 +233,7 @@ void ChatController::onStartupEvent(const QByteArray &data)
 
     // Check if we are already connected to that user
     if ( !connectedUsers.contains(username) ) {
-        Botan::DataSource_Memory key_pub(publicKey.toStdString());
-        auto publicRsaKey = Botan::X509::load_key(key_pub);
-
-        user = new ConnectedUser(publicRsaKey);
+        user = protocol->createUserFromPublicKey(publicKey);
         connectedUsers.insert(username, user);
 
         qDebug() << "New user with key added";
@@ -290,31 +287,8 @@ void ChatController::onEncryptEvent(const QByteArray &data)
     if ( connectedUsers.contains(username) ) {
         ConnectedUser * user = connectedUsers.value(username);
 
-        qDebug() << "Before decryptor";
-
-        Botan::PK_Decryptor_EME decryptor(user->privateKey(), "EME1(SHA-256)");
-
-        Botan::byte msgToDecrypt[message.length()];
-
-        qDebug() << "Round and roun";
-
-        for (int i = 0; i < message.length(); i++)
-        {
-            Botan::byte character = (Botan::byte) message.at(i);
-            msgToDecrypt[i] = character;
-        }
-
-        // Decrypt key with private key
-        Botan::secure_vector<Botan::byte> decryptedSerpentKey = decryptor.decrypt(msgToDecrypt, message.length());
-
         // The key is transfered in hex
-        QByteArray hexKey;
-
-        for (int i = 0; i < decryptedSerpentKey.size(); ++i) {
-            Botan::byte dataByte = decryptedSerpentKey[i];
-            hexKey.append((char) dataByte);
-        }
-
+        QByteArray hexKey = protocol->decryptWithAsymmetricKey(user, message);
         Botan::SymmetricKey aesKey(hexKey.toStdString());
 
         user->setSymmetricKey(aesKey);
@@ -345,9 +319,8 @@ void ChatController::onMessageEvent(const QByteArray &data)
     QByteArray username = messageData.left(seperatorIndex);
     QByteArray message = messageData.mid(seperatorIndex + seperator.length());
 
-    auto key = connectedUsers.value(username)->symmetricKey();
-    QByteArray decryptedMessage = decrypt(message, key);
-
+    ConnectedUser * user = connectedUsers.value(username);
+    QByteArray decryptedMessage = protocol->decryptWithSymmetricKey(user, message);
     qDebug() << "Decrypted message: " << decryptedMessage;
 
     emit receivedUserMessage(username, decryptedMessage);
@@ -362,39 +335,6 @@ void ChatController::onMessageEvent(const QByteArray &data)
     //n.setDeliveryDate(QDateTime::currentDateTime().addSecs(5));
 
     core.broadcastNotification(n);
-}
-
-/**
- * @brief ChatController::encrypt
- * @param input
- * @param key
- * @return
- */
-QByteArray ChatController::encrypt(const QByteArray &input, const Botan::SymmetricKey &key)
-{
-    const int inputSize = input.length();
-    Botan::byte inputData[inputSize];
-
-    for (int i = 0; i < inputSize; ++i) {
-        inputData[i] = input.at(i);
-    }
-
-    Botan::AutoSeeded_RNG rng;
-    std::string encryptedString = Botan::CryptoBox::encrypt(inputData, inputSize, key.as_string(), rng);
-
-    return QByteArray::fromStdString(encryptedString);
-}
-
-/**
- * @brief ChatController::decrypt
- * @param input
- * @param key
- * @return
- */
-QByteArray ChatController::decrypt(const QByteArray &input, const Botan::SymmetricKey &key)
-{
-    std::string decryptedString = Botan::CryptoBox::decrypt(input.toStdString(), key.as_string());
-    return QByteArray::fromStdString(decryptedString);
 }
 
 /**

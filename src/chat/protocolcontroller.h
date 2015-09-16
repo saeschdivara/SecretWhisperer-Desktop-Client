@@ -16,10 +16,15 @@ public:
 
     // Contact
     ConnectedUser * createUser();
+    ConnectedUser * createUserFromPublicKey(QByteArray & publicKey);
     void createSymmetricKeyForUser(ConnectedUser * user);
 
     // Encryption
     QByteArray encryptWithAsymmetricKey(ConnectedUser * user, std::string & data);
+    QByteArray decryptWithAsymmetricKey(ConnectedUser * user, QByteArray & data);
+
+    QByteArray encryptWithSymmetricKey(ConnectedUser * user, QByteArray & data);
+    QByteArray decryptWithSymmetricKey(ConnectedUser * user, QByteArray & data);
 
 signals:
 

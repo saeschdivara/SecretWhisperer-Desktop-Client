@@ -52,9 +52,6 @@ protected:
     void onMessageEvent(const QByteArray & data);
 
     // Helper methods
-
-    QByteArray encrypt(const QByteArray & input, const Botan::SymmetricKey & key);
-    QByteArray decrypt(const QByteArray & input, const Botan::SymmetricKey & key);
     QByteArray stripRequest(QByteArray data, QByteArray command);
 
 private:

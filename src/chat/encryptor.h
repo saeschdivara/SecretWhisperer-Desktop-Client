@@ -26,6 +26,10 @@ public:
     Botan::SymmetricKey createSymmetricKey();
 
     QByteArray encryptAsymmetricly(ConnectedUser * user, std::string & data);
+    QByteArray decryptAsymmetricly(ConnectedUser * user, QByteArray & data);
+
+    QByteArray encryptSymmetricly(ConnectedUser * user, QByteArray & data);
+    QByteArray decryptSymmetricly(ConnectedUser * user, QByteArray & data);
 
 signals:
 

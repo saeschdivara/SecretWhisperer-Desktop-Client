@@ -1,5 +1,7 @@
 #include "encryptor.h"
 
+#include <botan/cryptobox.h>
+
 const size_t SERPENT_KEY_SIZE = 128;
 
 Encryptor::Encryptor(QObject *parent) : QObject(parent)
@@ -40,10 +42,10 @@ Botan::SymmetricKey Encryptor::createSymmetricKey()
 
 QByteArray Encryptor::encryptAsymmetricly(ConnectedUser *user, std::string &data)
 {
-    const int DATA_SIZE = data.size();
+    const uint DATA_SIZE = data.size();
     Botan::byte msgtoencrypt[DATA_SIZE];
 
-    for (unsigned int i = 0; i < DATA_SIZE; i++)
+    for (uint i = 0; i < DATA_SIZE; i++)
     {
         msgtoencrypt[i] = data[i];
     }
@@ -60,5 +62,53 @@ QByteArray Encryptor::encryptAsymmetricly(ConnectedUser *user, std::string &data
     }
 
     return keyCipherData;
+}
+
+QByteArray Encryptor::decryptAsymmetricly(ConnectedUser *user, QByteArray &data)
+{
+    const int DATA_SIZE = data.size();
+    Botan::PK_Decryptor_EME decryptor(user->privateKey(), "EME1(SHA-256)");
+
+    Botan::byte msgToDecrypt[DATA_SIZE];
+
+    for (int i = 0; i < DATA_SIZE; i++)
+    {
+        Botan::byte character = (Botan::byte) data.at(i);
+        msgToDecrypt[i] = character;
+    }
+
+    // Decrypt key with private key
+    Botan::secure_vector<Botan::byte> decryptedSerpentKey = decryptor.decrypt(msgToDecrypt, DATA_SIZE);
+
+    // The key is transfered in hex
+    QByteArray decryptedData;
+
+    for (uint i = 0; i < decryptedSerpentKey.size(); ++i) {
+        Botan::byte dataByte = decryptedSerpentKey[i];
+        decryptedData.append((char) dataByte);
+    }
+
+    return decryptedData;
+}
+
+QByteArray Encryptor::encryptSymmetricly(ConnectedUser *user, QByteArray &data)
+{
+    const int inputSize = data.length();
+    Botan::byte inputData[inputSize];
+
+    for (int i = 0; i < inputSize; ++i) {
+        inputData[i] = data.at(i);
+    }
+
+    Botan::AutoSeeded_RNG rng;
+    std::string encryptedString = Botan::CryptoBox::encrypt(inputData, inputSize, user->symmetricKey().as_string(), rng);
+
+    return QByteArray::fromStdString(encryptedString);
+}
+
+QByteArray Encryptor::decryptSymmetricly(ConnectedUser *user, QByteArray &data)
+{
+    std::string decryptedString = Botan::CryptoBox::decrypt(data.toStdString(), user->symmetricKey().as_string());
+    return QByteArray::fromStdString(decryptedString);
 }
 
