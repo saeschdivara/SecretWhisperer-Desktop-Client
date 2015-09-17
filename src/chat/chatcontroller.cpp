@@ -204,26 +204,8 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
  * @brief ChatController::onStartupEvent
  * @param data
  */
-void ChatController::onStartupEvent(const QByteArray &data)
+void ChatController::onStartupEvent(const QByteArray &username, QByteArray & publicKey)
 {
-    QByteArray messageData = stripRequest(data, "STARTUP:");
-    const QByteArray seperator("\r\n");
-
-    int seperatorIndex = messageData.indexOf(seperator);
-
-    if ( seperatorIndex == -1 ) {
-        connector->send(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
-        return;
-    }
-
-    if ( seperatorIndex == 0 ) {
-        connector->send(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
-        return;
-    }
-
-    QByteArray username = messageData.left(seperatorIndex);
-    QByteArray publicKey = messageData.mid(seperatorIndex + seperator.length());
-
     ConnectedUser * user;
 
     // Check if we are already connected to that user
@@ -247,7 +229,7 @@ void ChatController::onStartupEvent(const QByteArray &data)
     connector->send(
                 QByteArrayLiteral("ENCRYPT:") +
                 username +
-                seperator +
+                QByteArrayLiteral("\r\n") +
                 keyCipherData +
                 QByteArrayLiteral("\r\n\r\n")
                 );
@@ -257,26 +239,8 @@ void ChatController::onStartupEvent(const QByteArray &data)
  * @brief ChatController::onEncryptEvent
  * @param data
  */
-void ChatController::onEncryptEvent(const QByteArray &data)
+void ChatController::onEncryptEvent(const QByteArray &username, QByteArray & message)
 {
-    QByteArray messageData = stripRequest(data, "ENCRYPT:");
-    const QByteArray seperator("\r\n");
-
-    int seperatorIndex = messageData.indexOf(seperator);
-
-    if ( seperatorIndex == -1 ) {
-        connector->send(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
-        return;
-    }
-
-    if ( seperatorIndex == 0 ) {
-        connector->send(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
-        return;
-    }
-
-    QByteArray username = messageData.left(seperatorIndex);
-    QByteArray message = messageData.mid(seperatorIndex + seperator.length());
-
     qDebug() << "Received encryption key";
 
     if ( connectedUsers.contains(username) ) {
@@ -294,26 +258,8 @@ void ChatController::onEncryptEvent(const QByteArray &data)
  * @brief ChatController::onMessageEvent
  * @param data
  */
-void ChatController::onMessageEvent(const QByteArray &data)
+void ChatController::onMessageEvent(const QByteArray &username, QByteArray & message)
 {
-    QByteArray messageData = stripRequest(data, "MESSAGE:");
-    const QByteArray seperator("\r\n");
-
-    int seperatorIndex = messageData.indexOf(seperator);
-
-    if ( seperatorIndex == -1 ) {
-        connector->send(QByteArrayLiteral("ERROR:MISSING SEPERATOR\r\n\r\n"));
-        return;
-    }
-
-    if ( seperatorIndex == 0 ) {
-        connector->send(QByteArrayLiteral("ERROR:MISSING USER\r\n\r\n"));
-        return;
-    }
-
-    QByteArray username = messageData.left(seperatorIndex);
-    QByteArray message = messageData.mid(seperatorIndex + seperator.length());
-
     ConnectedUser * user = connectedUsers.value(username);
     QByteArray decryptedMessage = protocol->decryptWithSymmetricKey(user, message);
     qDebug() << "Decrypted message: " << decryptedMessage;
@@ -330,35 +276,4 @@ void ChatController::onMessageEvent(const QByteArray &data)
     //n.setDeliveryDate(QDateTime::currentDateTime().addSecs(5));
 
     core.broadcastNotification(n);
-}
-
-/**
- * @brief ChatController::stripRequest
- * @param data
- * @param command
- * @return
- */
-QByteArray ChatController::stripRequest(QByteArray data, QByteArray command)
-{
-    const QByteArray endLiteral("\r\n\r\n");
-
-    if ( data.indexOf(command) != 0 ) {
-        connector->send(QByteArrayLiteral("ERROR:UNKNOWN COMMAND\r\n\r\n"));
-        socket->close();
-        return QByteArrayLiteral("");
-    }
-
-    data = data.remove(0, command.length());
-
-    int endIndex = data.indexOf(endLiteral);
-    if ( endIndex == -1 ) {
-        connector->send(QByteArrayLiteral("ERROR:NO END\r\n\r\n"));
-        socket->close();
-        return QByteArrayLiteral("");
-    }
-
-    // Get user name
-    data = data.remove(endIndex, endLiteral.length());
-
-    return data;
 }

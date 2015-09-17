@@ -46,15 +46,12 @@ public slots:
     void connectToUser(const QString & username);
     void sendMessageToUser(const QString & username, const QString & message);
 
-protected:
+protected slots:
 
     // Events helper
-    void onStartupEvent(const QByteArray & data);
-    void onEncryptEvent(const QByteArray & data);
-    void onMessageEvent(const QByteArray & data);
-
-    // Helper methods
-    QByteArray stripRequest(QByteArray data, QByteArray command);
+    void onStartupEvent(const QByteArray & username, QByteArray &publicKey);
+    void onEncryptEvent(const QByteArray & username, QByteArray &message);
+    void onMessageEvent(const QByteArray & username, QByteArray &message);
 
 private:
     // Server connection
