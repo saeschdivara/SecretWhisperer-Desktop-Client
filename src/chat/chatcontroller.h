@@ -25,6 +25,9 @@ public:
     explicit ChatController(QObject *parent = 0);
     virtual ~ChatController();
 
+    void listenOnErrors();
+    void listenOnProtocol();
+
 signals:
     void connected();
     void receivedUserMessage(const QString & username, const QString & message);
@@ -34,7 +37,6 @@ signals:
 public slots:
 
     void onConnectionEstablished();
-    void onServerData(QByteArray &data);
     void onError(const QList<QSslError> &errors);
     void onSocketError(QAbstractSocket::SocketError error);
 

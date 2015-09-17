@@ -78,6 +78,14 @@ QByteArray ProtocolController::decryptWithSymmetricKey(ConnectedUser *user, QByt
 
 void ProtocolController::onServerDataEvent(QByteArray &data)
 {
-    //
+    if ( data.indexOf("MESSAGE:") == 0 ) {
+        signalMessage(data);
+    }
+    else if ( data.indexOf("STARTUP:") == 0 ) {
+        signalStartup(data);
+    }
+    else if ( data.indexOf("ENCRYPT:") == 0 ) {
+        signalEncrypt(data);
+    }
 }
 

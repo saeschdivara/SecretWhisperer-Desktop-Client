@@ -27,6 +27,9 @@ public:
     QByteArray decryptWithSymmetricKey(ConnectedUser * user, QByteArray & data);
 
 signals:
+    void signalStartup(QByteArray & data);
+    void signalEncrypt(QByteArray & data);
+    void signalMessage(QByteArray & data);
 
 public slots:
     void onServerDataEvent(QByteArray & data);

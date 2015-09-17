@@ -57,34 +57,35 @@ ChatController::~ChatController()
     socket->disconnectFromHost();
 }
 
+void ChatController::listenOnErrors()
+{
+    // Errors
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SIGNAL(error(QAbstractSocket::SocketError)));
+
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(onSocketError(QAbstractSocket::SocketError)));
+
+    connect(socket, SIGNAL(sslErrors(QList<QSslError>)),
+            this, SLOT(onError(QList<QSslError>)));
+}
+
+void ChatController::listenOnProtocol()
+{
+    connect(connector, &Connector::newData, protocol, &ProtocolController::onServerDataEvent );
+
+    // Protocol signals
+    connect( protocol, &ProtocolController::signalStartup, this, &ChatController::onStartupEvent );
+    connect( protocol, &ProtocolController::signalEncrypt, this, &ChatController::onEncryptEvent );
+    connect( protocol, &ProtocolController::signalMessage, this, &ChatController::onMessageEvent );
+}
+
 /**
  * @brief ChatController::onConnectionEstablished
  */
 void ChatController::onConnectionEstablished()
 {
-    //
-}
 
-/**
- * @brief ChatController::onServerData
- */
-void ChatController::onServerData(QByteArray & data)
-{
-
-    qDebug() << "Received server data";
-
-    if ( data.indexOf("MESSAGE:") == 0 ) {
-        onMessageEvent(data);
-    }
-    else if ( data.indexOf("STARTUP:") == 0 ) {
-        onStartupEvent(data);
-    }
-    else if ( data.indexOf("ENCRYPT:") == 0 ) {
-        onEncryptEvent(data);
-    }
-    else {
-        qDebug() << "Unknwon: " << data;
-    }
 }
 
 /**
@@ -110,20 +111,14 @@ void ChatController::onSocketError(QAbstractSocket::SocketError error)
  */
 void ChatController::connectToServer(const QString &url, quint16 port)
 {
-    // Connections
+    // Listen on start
     connect(socket, &QSslSocket::encrypted, this, &ChatController::connected);
-    connect(connector, &Connector::newData, this, &ChatController::onServerData );
 
+    listenOnErrors();
+    listenOnProtocol();
+
+    // Connections
     connector->listen();
-
-    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
-            this, SIGNAL(error(QAbstractSocket::SocketError)));
-
-    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
-            this, SLOT(onSocketError(QAbstractSocket::SocketError)));
-
-    connect(socket, SIGNAL(sslErrors(QList<QSslError>)),
-            this, SLOT(onError(QList<QSslError>)));
 
     // Finally connect to server
     socket->connectToHostEncrypted(url, port);
