@@ -13,6 +13,8 @@
 #include "chat/notificationcontroller.h"
 #include "chat/protocolcontroller.h"
 
+#include "chat/user/identitycontroller.h"
+
 
 class ChatController : public QObject
 {
@@ -55,6 +57,8 @@ private:
     Connector * connector;
     NotificationController * notifyer;
     ProtocolController * protocol;
+
+    IdentityController * identity;
 
     // Contacts
     QHash<QByteArray, ConnectedUser *> connectedUsers;

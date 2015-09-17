@@ -19,7 +19,8 @@ ChatController::ChatController(QObject *parent) : QObject(parent),
     socket(new QSslSocket(this)),
     connector(new Connector(socket, this)),
     notifyer(new NotificationController(this)),
-    protocol(new ProtocolController(this))
+    protocol(new ProtocolController(this)),
+    identity(new IdentityController(this))
 {
     protocol->prepareConnection(socket);
 }
@@ -117,22 +118,22 @@ void ChatController::connectToUser(const QString &username)
     qDebug() << "Connecting to user";
 
     try
-        {
-            // Add user to internal user list
-            ConnectedUser * user = protocol->createUser();
-            connectedUsers.insert(username.toUtf8(), user);
+    {
+        // Add user to internal user list
+        ConnectedUser * user = protocol->createUser();
+        connectedUsers.insert(username.toUtf8(), user);
 
-            QByteArray pub = user->getDataFromPublicKey();
+        QByteArray pub = user->getDataFromPublicKey();
 
-            emit connectionToUserEstablished(username);
+        emit connectionToUserEstablished(username);
 
-            // Send public key to the other user
-            connector->onMessage(QByteArray("CONNECT:"), username.toUtf8(), pub);
-        }
-        catch(std::exception &e)
-        {
-            qDebug() << e.what();
-        }
+        // Send public key to the other user
+        connector->onMessage(QByteArray("CONNECT:"), username.toUtf8(), pub);
+    }
+    catch(std::exception &e)
+    {
+        qDebug() << e.what();
+    }
 }
 
 /**

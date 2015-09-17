@@ -11,7 +11,8 @@ SOURCES += main.cpp \
     chat/connector.cpp \
     chat/encryptor.cpp \
     chat/protocolcontroller.cpp \
-    chat/notificationcontroller.cpp
+    chat/notificationcontroller.cpp \
+    chat/user/identitycontroller.cpp
 
 RESOURCES += \
     ui.qrc
@@ -56,4 +57,5 @@ HEADERS += \
     chat/connector.h \
     chat/encryptor.h \
     chat/protocolcontroller.h \
-    chat/notificationcontroller.h
+    chat/notificationcontroller.h \
+    chat/user/identitycontroller.h
