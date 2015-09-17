@@ -1,5 +1,15 @@
 # Secret Whisperer
 
+## How to build
+
+1. Clone this repository
+2. Clone in a different directory the following repositories:
+- https://github.com/randombit/botan (encryption)
+- https://github.com/Snorenotify/Snorenotify (if you want to have desktop notifications)
+3. Build botan (or install the library)
+4. Build Snorenotify (if you want otherwise you need comment out the USE_SNORTIFY in the project file: *.pro)
+5. Build client
+
 ## Concept
 
 1. Server started and waiting for new clients
