@@ -19,6 +19,10 @@ signals:
     void closed();
 
 public slots:
+
+    void onMessage(const QByteArray & command, const QByteArray & data);
+    void onMessage(const QByteArray & command, const QByteArray & username, const QByteArray & data);
+
     void onData();
     void onClose();
 

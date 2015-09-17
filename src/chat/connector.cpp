@@ -16,6 +16,31 @@ void Connector::send(const QByteArray &data)
     socket->write(data);
 }
 
+void Connector::onMessage(const QByteArray &command, const QByteArray &data)
+{
+    const QByteArray endLiteral("\r\n\r\n");
+
+    send(
+        command +
+        data +
+        endLiteral
+    );
+}
+
+void Connector::onMessage(const QByteArray &command, const QByteArray &username, const QByteArray &data)
+{
+    const QByteArray seperator("\r\n");
+    const QByteArray endLiteral("\r\n\r\n");
+
+    send(
+        command +
+        username +
+        seperator +
+        data +
+        endLiteral
+    );
+}
+
 void Connector::onData()
 {
     QByteArray data = socket->readAll();

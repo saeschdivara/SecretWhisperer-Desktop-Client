@@ -131,11 +131,7 @@ void ChatController::connectToServer(const QString &url, quint16 port)
 void ChatController::chooseUserName(const QString &username)
 {
     qDebug() << "Choosing username";
-    connector->send(
-                    QByteArrayLiteral("USER:") +
-                    username.toUtf8() +
-                    QByteArrayLiteral("\r\n\r\n")
-                );
+    connector->onMessage(QByteArray("USER:"), username.toUtf8());
 }
 
 /**
@@ -157,13 +153,7 @@ void ChatController::connectToUser(const QString &username)
             emit connectionToUserEstablished(username);
 
             // Send public key to the other user
-            connector->send(
-                            QByteArrayLiteral("CONNECT:") +
-                            username.toUtf8() +
-                            QByteArrayLiteral("\r\n") +
-                            pub +
-                            QByteArrayLiteral("\r\n\r\n")
-                        );
+            connector->onMessage(QByteArray("CONNECT:"), username.toUtf8(), pub);
         }
         catch(std::exception &e)
         {
@@ -190,14 +180,7 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
     QByteArray encryptedMessage = protocol->encryptWithSymmetricKey(user, messageData);
 
     qDebug() << "Encrypted message: " << encryptedMessage;
-
-    connector->send(
-                    QByteArrayLiteral("SEND:") +
-                    username.toUtf8() +
-                    QByteArrayLiteral("\r\n") +
-                    encryptedMessage +
-                    QByteArrayLiteral("\r\n\r\n")
-                );
+    connector->onMessage(QByteArray("SEND:"), username.toUtf8(), encryptedMessage);
 }
 
 /**
@@ -226,13 +209,7 @@ void ChatController::onStartupEvent(const QByteArray &username, QByteArray & pub
     std::string serpentString = user->symmetricKey().as_string();
     QByteArray keyCipherData = protocol->encryptWithAsymmetricKey(user, serpentString);
 
-    connector->send(
-                QByteArrayLiteral("ENCRYPT:") +
-                username +
-                QByteArrayLiteral("\r\n") +
-                keyCipherData +
-                QByteArrayLiteral("\r\n\r\n")
-                );
+    connector->onMessage(QByteArray("ENCRYPT:"), username, keyCipherData);
 }
 
 /**
@@ -262,7 +239,6 @@ void ChatController::onMessageEvent(const QByteArray &username, QByteArray & mes
 {
     ConnectedUser * user = connectedUsers.value(username);
     QByteArray decryptedMessage = protocol->decryptWithSymmetricKey(user, message);
-    qDebug() << "Decrypted message: " << decryptedMessage;
 
     emit receivedUserMessage(username, decryptedMessage);
 
