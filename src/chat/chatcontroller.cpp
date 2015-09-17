@@ -248,9 +248,9 @@ void ChatController::onEncryptEvent(const QByteArray &username, QByteArray & mes
 
         // The key is transfered in hex
         QByteArray hexKey = protocol->decryptWithAsymmetricKey(user, message);
-        Botan::SymmetricKey aesKey(hexKey.toStdString());
+        Botan::SymmetricKey key(hexKey.toStdString());
 
-        user->setSymmetricKey(aesKey);
+        user->setSymmetricKey(key);
     }
 }
 
