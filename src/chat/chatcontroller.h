@@ -7,14 +7,10 @@
 
 #include <QtNetwork/QSslSocket>
 
-// SNORTIFY
-#include <libsnore/snore.h>
-#include <libsnore/notification/notification.h>
-#include <libsnore/log.h>
-
 // LOCAL
 #include "chat/connecteduser.h"
 #include "chat/connector.h"
+#include "chat/notificationcontroller.h"
 #include "chat/protocolcontroller.h"
 
 
@@ -57,16 +53,11 @@ private:
     // Server connection
     QSslSocket * socket;
     Connector * connector;
+    NotificationController * notifyer;
     ProtocolController * protocol;
 
     // Contacts
     QHash<QByteArray, ConnectedUser *> connectedUsers;
-
-    // Notfications
-    Snore::SnoreCore &core;
-    Snore::Icon icon;
-    Snore::Application snoreApplication;
-    Snore::Alert alert;
 };
 
 #endif // CHATCONTROLLER_H

@@ -1,7 +1,6 @@
 #include "chatcontroller.h"
 
 // QT
-#include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QThread>
 
@@ -11,43 +10,18 @@
 #include <botan/sha160.h>
 #include <botan/dlies.h>
 
-// SNORTIFY
-#include <libsnore/snore.h>
-#include <libsnore/notification/notification.h>
-#include <libsnore/log.h>
-
-using namespace Snore;
-
 /**
  * @brief ChatController::ChatController
  * @param parent
  */
 ChatController::ChatController(QObject *parent) : QObject(parent),
-    core(SnoreCore::instance()),
-    icon(QString(":/root/snore.png")),
-    snoreApplication(Application(qApp->applicationName(), icon)),
-    alert(Alert(QString("Default"), icon)),
-
     // Connection objects
     socket(new QSslSocket(this)),
     connector(new Connector(socket, this)),
+    notifyer(new NotificationController(this)),
     protocol(new ProtocolController(this))
 {
     protocol->prepareConnection(socket);
-
-    // Snortify
-    Snore::SnoreLog::setDebugLvl(1);
-
-    //Get the core
-    Snore::SnoreCore::instance().loadPlugins(
-                Snore::SnorePlugin::BACKEND | Snore::SnorePlugin::SECONDARY_BACKEND
-    );
-
-    //All notifications have to have icon, so prebuild one
-    core.registerApplication(snoreApplication);
-
-    //Also alert is mandatory, just choose the default one
-    snoreApplication.addAlert(alert);
 }
 
 ChatController::~ChatController()
@@ -242,14 +216,5 @@ void ChatController::onMessageEvent(const QByteArray &username, QByteArray & mes
 
     emit receivedUserMessage(username, decryptedMessage);
 
-    // Inform the user of the new message
-    Notification n(snoreApplication, alert,
-                   QStringLiteral("Message from ") + username,
-                   decryptedMessage,
-                   icon);
-
-    // Optional: you can also set delivery date if you want to schedule notification
-    //n.setDeliveryDate(QDateTime::currentDateTime().addSecs(5));
-
-    core.broadcastNotification(n);
+    notifyer->showNotification(QStringLiteral("Message from ") + username, decryptedMessage);
 }
