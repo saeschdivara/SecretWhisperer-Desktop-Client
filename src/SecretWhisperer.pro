@@ -1,7 +1,7 @@
 TEMPLATE = app
 CONFIG   -= app_bundle
 
-QT += widgets webkitwidgets
+QT += widgets webkitwidgets sql
 
 CONFIG += c++11
 
@@ -12,7 +12,9 @@ SOURCES += main.cpp \
     chat/encryptor.cpp \
     chat/protocolcontroller.cpp \
     chat/notificationcontroller.cpp \
-    chat/user/identitycontroller.cpp
+    chat/user/identitycontroller.cpp \
+    chat/helper/migrationhelper.cpp \
+    chat/helper/sql.cpp
 
 RESOURCES += \
     ui.qrc
@@ -29,7 +31,7 @@ unix|win32: LIBS += -L/usr/local/lib/ -lbotan-1.11
 INCLUDEPATH += /usr/local/include/botan-1.11/
 DEPENDPATH += /usr/local/include/botan-1.11/
 
-DEFINES += USE_SNORTIFY
+#DEFINES += USE_SNORTIFY
 
 if (defined(USE_SNORTIFY)) {
 
@@ -58,4 +60,6 @@ HEADERS += \
     chat/encryptor.h \
     chat/protocolcontroller.h \
     chat/notificationcontroller.h \
-    chat/user/identitycontroller.h
+    chat/user/identitycontroller.h \
+    chat/helper/migrationhelper.h \
+    chat/helper/sql.h

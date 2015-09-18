@@ -23,6 +23,8 @@ ChatController::ChatController(QObject *parent) : QObject(parent),
     identity(new IdentityController(this))
 {
     protocol->prepareConnection(socket);
+
+    identity->createUserIdentity();
 }
 
 ChatController::~ChatController()

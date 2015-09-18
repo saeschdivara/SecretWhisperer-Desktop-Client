@@ -27,5 +27,8 @@
         <file>ui/css/3rdparty/materialize/font/roboto/Roboto-Thin.ttf</file>
         <file>ui/css/3rdparty/materialize/font/roboto/Roboto-Thin.woff</file>
         <file>ui/css/3rdparty/materialize/font/roboto/Roboto-Thin.woff2</file>
+        <file>sql/user.sql</file>
+        <file>sql/migrations/0.sql</file>
+        <file>sql/migrations.sql</file>
     </qresource>
 </RCC>
