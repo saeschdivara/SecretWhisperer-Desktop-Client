@@ -23,10 +23,11 @@
     onServerConnect = function() {
       console.log('Connected');
       return jQuery('#submit-user-button').click(function() {
-        var my_user_name;
+        var my_user_name, my_user_password;
         console.log('on login button clicked');
         my_user_name = jQuery('#username').val();
-        chat.chooseUserName(my_user_name);
+        my_user_password = jQuery('#password').val();
+        chat.chooseUserName(my_user_name, my_user_password);
         jQuery('#userbox').hide();
         jQuery('#submit-other-user-button').click(onUserChosen);
         chat.connectionToUserEstablished.connect(onUserAdded);

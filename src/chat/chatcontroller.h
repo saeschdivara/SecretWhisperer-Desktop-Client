@@ -39,8 +39,9 @@ public slots:
     void onSocketError(QAbstractSocket::SocketError error);
 
     // User Actions
+
     void connectToServer(const QString &url, quint16 port);
-    void chooseUserName(const QString & username);
+    void chooseUserName(const QString & username, const QString &password);
     void connectToUser(const QString & username);
     void sendMessageToUser(const QString & username, const QString & message);
 

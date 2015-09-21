@@ -23,8 +23,6 @@ ChatController::ChatController(QObject *parent) : QObject(parent),
     identity(new IdentityController(this))
 {
     protocol->prepareConnection(socket);
-
-    identity->createUserIdentity();
 }
 
 ChatController::~ChatController()
@@ -62,7 +60,6 @@ void ChatController::listenOnProtocol()
  */
 void ChatController::onConnectionEstablished()
 {
-
 }
 
 /**
@@ -105,9 +102,11 @@ void ChatController::connectToServer(const QString &url, quint16 port)
  * @brief ChatController::chooseUserName
  * @param username
  */
-void ChatController::chooseUserName(const QString &username)
+void ChatController::chooseUserName(const QString &username, const QString &password)
 {
     qDebug() << "Choosing username";
+
+    identity->createUserIdentity(username, password);
     connector->onMessage(QByteArray("USER:"), username.toUtf8());
 }
 

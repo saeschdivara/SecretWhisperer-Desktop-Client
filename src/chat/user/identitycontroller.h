@@ -6,6 +6,7 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlTableModel>
 
+#include "chat/encryptor.h"
 #include "chat/helper/migrationhelper.h"
 
 class IdentityController : public QObject
@@ -13,7 +14,7 @@ class IdentityController : public QObject
     Q_OBJECT
 public:
     explicit IdentityController(QObject *parent = 0);
-    void createUserIdentity();
+    void createUserIdentity(const QString &username, const QString &password);
 
 signals:
 
@@ -26,6 +27,12 @@ protected:
 private:
     // Database
     QSqlDatabase database;
+
+    // Identity
+    ConnectedUser * user;
+
+    // Encryption
+    Encryptor * encryptor;
 
     // Helpers
     MigrationHelper * migrations;

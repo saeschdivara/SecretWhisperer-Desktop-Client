@@ -91,24 +91,40 @@ QByteArray Encryptor::decryptAsymmetricly(ConnectedUser *user, QByteArray &data)
     return decryptedData;
 }
 
-QByteArray Encryptor::encryptSymmetricly(ConnectedUser *user, QByteArray &data)
+QByteArray Encryptor::encryptSymmetricly(ConnectedUser *user, QByteArray data)
+{
+    return encryptSymmetricly(user->symmetricKey().as_string(), data);
+}
+
+QByteArray Encryptor::encryptSymmetricly(std::string password, QByteArray data)
 {
     const int inputSize = data.length();
-    Botan::byte inputData[inputSize];
+    std::vector<Botan::byte> inputData;
+    //inputData.reserve(inputSize);
 
     for (int i = 0; i < inputSize; ++i) {
-        inputData[i] = data.at(i);
+        inputData.push_back(data.at(i));
     }
 
+    return encryptSymmetricly(password, inputData);
+}
+
+QByteArray Encryptor::encryptSymmetricly(std::string password, std::vector<Botan::byte> &data)
+{
     Botan::AutoSeeded_RNG rng;
-    std::string encryptedString = Botan::CryptoBox::encrypt(inputData, inputSize, user->symmetricKey().as_string(), rng);
+    std::string encryptedString = Botan::CryptoBox::encrypt(data.data(), data.size(), password, rng);
 
     return QByteArray::fromStdString(encryptedString);
 }
 
-QByteArray Encryptor::decryptSymmetricly(ConnectedUser *user, QByteArray &data)
+QByteArray Encryptor::decryptSymmetricly(ConnectedUser *user, QByteArray data)
 {
-    std::string decryptedString = Botan::CryptoBox::decrypt(data.toStdString(), user->symmetricKey().as_string());
+    return decryptSymmetricly(user->symmetricKey().as_string(), data);
+}
+
+QByteArray Encryptor::decryptSymmetricly(std::string password, QByteArray data)
+{
+    std::string decryptedString = Botan::CryptoBox::decrypt(data.toStdString(), password);
     return QByteArray::fromStdString(decryptedString);
 }
 

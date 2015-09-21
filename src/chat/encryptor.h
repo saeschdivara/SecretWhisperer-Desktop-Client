@@ -28,8 +28,11 @@ public:
     QByteArray encryptAsymmetricly(ConnectedUser * user, std::string & data);
     QByteArray decryptAsymmetricly(ConnectedUser * user, QByteArray & data);
 
-    QByteArray encryptSymmetricly(ConnectedUser * user, QByteArray & data);
-    QByteArray decryptSymmetricly(ConnectedUser * user, QByteArray & data);
+    QByteArray encryptSymmetricly(ConnectedUser * user, QByteArray data);
+    QByteArray encryptSymmetricly(std::string password, QByteArray data);
+    QByteArray encryptSymmetricly(std::string password, std::vector<Botan::byte> &data);
+    QByteArray decryptSymmetricly(ConnectedUser * user, QByteArray data);
+    QByteArray decryptSymmetricly(std::string password, QByteArray data);
 
 signals:
 

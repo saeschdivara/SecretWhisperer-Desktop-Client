@@ -40,11 +40,11 @@ onDocumentReady = () ->
                 console.log('on login button clicked')
 
                 my_user_name = jQuery('#username').val()
+                my_user_password = jQuery('#password').val()
 
-                chat.chooseUserName(my_user_name)
+                chat.chooseUserName(my_user_name, my_user_password)
 
                 jQuery('#userbox').hide()
-
                 jQuery('#submit-other-user-button').click(onUserChosen)
 
                 chat.connectionToUserEstablished.connect(onUserAdded)
