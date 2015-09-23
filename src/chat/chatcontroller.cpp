@@ -51,6 +51,7 @@ void ChatController::listenOnProtocol()
 
     // Protocol signals
     connect( protocol, &ProtocolController::signalStartup, this, &ChatController::onStartupEvent );
+    connect( protocol, &ProtocolController::signalIdentityCheck, this, &ChatController::onIdentityCheckEvent );
     connect( protocol, &ProtocolController::signalEncrypt, this, &ChatController::onEncryptEvent );
     connect( protocol, &ProtocolController::signalMessage, this, &ChatController::onMessageEvent );
 }
@@ -107,7 +108,9 @@ void ChatController::chooseUserName(const QString &username, const QString &pass
     qDebug() << "Choosing username";
 
     identity->createUserIdentity(username, password);
-    connector->onMessage(QByteArray("USER:"), username.toUtf8());
+    connector->onMessage(QByteArray("USER:"),
+                         username.toUtf8(),
+                         QByteArray::fromStdString(identity->getSymmetricKeyString()));
 }
 
 /**
@@ -219,4 +222,12 @@ void ChatController::onMessageEvent(const QByteArray &username, QByteArray & mes
     emit receivedUserMessage(username, decryptedMessage);
 
     notifyer->showNotification(QStringLiteral("Message from ") + username, decryptedMessage);
+}
+
+void ChatController::onIdentityCheckEvent(QByteArray &encryptedRandomString)
+{
+    QByteArray randomString = protocol->decryptWithAsymmetricKey(identity->getUser(), encryptedRandomString);
+    QByteArray randomStringHash = QCryptographicHash::hash(randomString, QCryptographicHash::Sha3_512);
+
+    connector->onMessage(QByteArray("AUTHENTICATE:"), randomStringHash);
 }

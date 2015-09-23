@@ -119,6 +119,13 @@ void ProtocolController::onServerDataEvent(QByteArray &data)
             signalEncrypt(username, message);
         }
     }
+    else if ( data.indexOf("IDENTITY-CHECK:") == 0 ) {
+        QByteArray encryptedRandomString = stripRequest(data, QByteArrayLiteral("IDENTITY-CHECK:"));
+
+        if ( encryptedRandomString.size() > 0 ) {
+            signalIdentityCheck(encryptedRandomString);
+        }
+    }
     else {
         signalError(QByteArrayLiteral("UNKNOWN ACTION"));
     }

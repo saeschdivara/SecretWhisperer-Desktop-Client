@@ -51,6 +51,7 @@ protected slots:
     void onStartupEvent(const QByteArray & username, QByteArray &publicKey);
     void onEncryptEvent(const QByteArray & username, QByteArray &message);
     void onMessageEvent(const QByteArray & username, QByteArray &message);
+    void onIdentityCheckEvent(QByteArray & encryptedRandomString);
 
 private:
     // Server connection

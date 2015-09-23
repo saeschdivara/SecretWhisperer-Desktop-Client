@@ -16,9 +16,11 @@ public:
     explicit IdentityController(QObject *parent = 0);
     void createUserIdentity(const QString &username, const QString &password);
 
-signals:
+    ConnectedUser * getUser() {
+        return user;
+    }
 
-public slots:
+    std::string getSymmetricKeyString();
 
 protected:
     void createDatabaseConnection();

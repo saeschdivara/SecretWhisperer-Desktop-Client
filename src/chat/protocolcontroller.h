@@ -30,6 +30,7 @@ signals:
     void signalStartup(const QByteArray & username, QByteArray & publicKey);
     void signalEncrypt(const QByteArray & username, QByteArray & message);
     void signalMessage(const QByteArray & username, QByteArray & message);
+    void signalIdentityCheck(QByteArray &);
     void signalError(QByteArray);
 
 public slots:

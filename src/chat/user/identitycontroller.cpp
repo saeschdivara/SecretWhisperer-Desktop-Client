@@ -112,6 +112,11 @@ void IdentityController::createUserIdentity(const QString & username, const QStr
 
 }
 
+std::string IdentityController::getSymmetricKeyString()
+{
+    return Botan::X509::PEM_encode(user->publicKey());
+}
+
 void IdentityController::createDatabaseConnection()
 {
     if ( !QSqlDatabase::contains(QStringLiteral("CHAT-DB")) ) {
