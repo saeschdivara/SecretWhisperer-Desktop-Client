@@ -55,16 +55,20 @@
                     <div class='message-box'
                          ng-repeat="message in chat.current_messages">
 
-                        <div class='partner-message blue darken-1' ng-if="message.is_from_contact">
-                            <div class='message'>
-                                <p>{{ message.text() }}</p>
-                            </div>
-                        </div>
+                        <div ng-class="message.message_classes">
 
-                        <div class='my-message blue lighten-3' ng-if="message.is_from_me">
-                            <div class='message'>
-                                <p>{{ message.text() }}</p>
+                            <div ng-switch="message.message_type" class="message">
+
+                                <div ng-switch-when="text">
+                                    <p>{{ message.text() }}</p>
+                                </div>
+
+                                <div ng-switch-when="image">
+                                    <img src="{{ message.image() }}" alt="">
+                                </div>
+
                             </div>
+
                         </div>
 
                     </div>
@@ -72,6 +76,7 @@
                 </div>
 
 
+                <!-- INPUT -->
                 <textarea name="chat-input" id="chat-input" class="materialize-textarea"
                           ng-model="chat.current_typed_message"></textarea>
                 <br/>

@@ -25,14 +25,19 @@
   -webkit-margin-end: 0px !important;
 }
 /* line 29, ../sass/screen.sass */
+#chatbox .message-box .message img {
+  max-width: 300px;
+  max-height: 400px;
+}
+/* line 33, ../sass/screen.sass */
 #chatbox .my-message {
   margin: 0px;
 }
-/* line 33, ../sass/screen.sass */
+/* line 37, ../sass/screen.sass */
 #chatbox .my-message .message p {
   text-align: right !important;
 }
-/* line 37, ../sass/screen.sass */
+/* line 41, ../sass/screen.sass */
 #chatbox #chat-messages {
   margin-bottom: 20px;
 }

@@ -24,6 +24,34 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             @is_from_me = from_me
             @is_from_contact = from_contact
 
+            if @is_from_me
+                @message_classes = ['my-message', 'blue', 'lighten-3']
+            else if @is_from_contact
+                @message_classes = ['partner-message', 'blue', 'darken-1']
+
+            @message_type = @getType()
+
+
+        getType: () ->
+            ###
+            ###
+
+            if @message.indexOf('data:') is 0
+
+                if @message.indexOf('data:image') is 0
+                    'image'
+
+
+            else
+                'text'
+
+
+        image: () ->
+            ###
+            ###
+
+            @message
+
 
         text: () ->
             ###

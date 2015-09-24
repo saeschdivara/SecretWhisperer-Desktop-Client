@@ -140,7 +140,33 @@
           this.message = message;
           this.is_from_me = from_me;
           this.is_from_contact = from_contact;
+          if (this.is_from_me) {
+            this.message_classes = ['my-message', 'blue', 'lighten-3'];
+          } else if (this.is_from_contact) {
+            this.message_classes = ['partner-message', 'blue', 'darken-1'];
+          }
+          this.message_type = this.getType();
         }
+
+        ChatMessage.prototype.getType = function() {
+
+          /*
+           */
+          if (this.message.indexOf('data:') === 0) {
+            if (this.message.indexOf('data:image') === 0) {
+              return 'image';
+            }
+          } else {
+            return 'text';
+          }
+        };
+
+        ChatMessage.prototype.image = function() {
+
+          /*
+           */
+          return this.message;
+        };
 
         ChatMessage.prototype.text = function() {
 
