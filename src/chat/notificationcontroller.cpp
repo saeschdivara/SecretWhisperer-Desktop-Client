@@ -42,6 +42,11 @@ NotificationController::NotificationController(QObject *parent) : QObject(parent
 void NotificationController::showNotification(const QString &title, const QString &text)
 {
 
+    // We don't want files being shown
+    if ( text.length() > 2048 ) {
+        return;
+    }
+
 #ifdef USE_SNORTIFY
     // Inform the user of the new message
     Snore::Notification n(snoreApplication, alert,
