@@ -26,8 +26,15 @@ public slots:
     void onData();
     void onClose();
 
+protected slots:
+
+    void onDataWritten(qint64 bytesNumber);
+
 private:
     QSslSocket * socket;
+
+    // Data
+    QByteArray savedData;
 };
 
 #endif // CONNECTOR_H

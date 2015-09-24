@@ -158,7 +158,7 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
     QByteArray messageData = message.toUtf8();
     QByteArray encryptedMessage = protocol->encryptWithSymmetricKey(user, messageData);
 
-    qDebug() << "Encrypted message: " << encryptedMessage;
+    //qDebug() << "Encrypted message: " << encryptedMessage;
     connector->onMessage(QByteArray("SEND:"), username.toUtf8(), encryptedMessage);
 }
 
