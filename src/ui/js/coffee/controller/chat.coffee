@@ -16,7 +16,7 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
         ## PUBLIC METHODS ##
         ####################
 
-        constructor: (message, from_me, from_contact) ->
+        constructor: (message, from_me, from_contact, is_file) ->
             ###
             ###
 
@@ -29,21 +29,27 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             else if @is_from_contact
                 @message_classes = ['partner-message', 'blue', 'darken-1']
 
-            @message_type = @getType()
+            if is_file
+                @message_type = @getType()
+            else
+                @message_type = 'text'
 
 
         getType: () ->
             ###
             ###
 
-            if @message.indexOf('data:') is 0
-
-                if @message.indexOf('data:image') is 0
-                    'image'
-
-
+            if @message.indexOf('.jpg') > -1
+                'image'
             else
-                'text'
+                'downloadable'
+
+
+        link: () ->
+            ###
+            ###
+
+            @message
 
 
         image: () ->
@@ -194,6 +200,25 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             $scope.$apply()
 
 
+        onFileFromContact: (message) =>
+            ###
+            ###
+
+            username = message.contact
+            message_text = message.message
+
+            if @current_contact.username == username
+                @current_messages.push(
+                    new ChatMessage(message_text, false, true)
+                )
+            else
+                for contact in @contacts
+                    if contact.username == username
+                        contact.messages.push(new ChatMessage(message_text, false, true, true))
+
+            $scope.$apply()
+
+
         onContactAdded: (username) =>
             ###
             ###
@@ -238,6 +263,7 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
 
     MessageQueue.$subscribe('new-message-from-me', controller.onMessageFromMe)
     MessageQueue.$subscribe('new-message-from-other', controller.onMessageFromContact)
+    MessageQueue.$subscribe('new-file-from-other', controller.onFileFromContact)
 
 
     ################################################################

@@ -1,7 +1,10 @@
 #include "chatcontroller.h"
 
 // QT
+#include <QtCore/QDir>
 #include <QtCore/QFile>
+#include <QtCore/QMimeDatabase>
+#include <QtCore/QMimeType>
 #include <QtCore/QThread>
 
 // BOTAN
@@ -9,6 +12,8 @@
 #include <botan/hmac.h>
 #include <botan/sha160.h>
 #include <botan/dlies.h>
+
+QByteArray createFileFromDataUri(QByteArray & dataUri);
 
 /**
  * @brief ChatController::ChatController
@@ -219,7 +224,13 @@ void ChatController::onMessageEvent(const QByteArray &username, QByteArray & mes
     ConnectedUser * user = connectedUsers.value(username);
     QByteArray decryptedMessage = protocol->decryptWithSymmetricKey(user, message);
 
-    emit receivedUserMessage(username, decryptedMessage);
+    if ( decryptedMessage.startsWith("unsafe:data:") || decryptedMessage.startsWith("data:") ) {
+        QByteArray fileUrl = createFileFromDataUri(decryptedMessage);
+        emit receivedUserFile(username, fileUrl);
+    }
+    else {
+        emit receivedUserMessage(username, decryptedMessage);
+    }
 
     notifyer->showNotification(QStringLiteral("Message from ") + username, decryptedMessage);
 }
@@ -230,4 +241,74 @@ void ChatController::onIdentityCheckEvent(QByteArray &encryptedRandomString)
     QByteArray randomStringHash = QCryptographicHash::hash(randomString, QCryptographicHash::Sha3_512);
 
     connector->onMessage(QByteArray("AUTHENTICATE:"), randomStringHash);
+}
+
+
+QDir getOrCreate(QDir baseDir, QString dirName) {
+    QDir newDir(baseDir.absolutePath() + QDir::separator() + dirName);
+
+    if ( !newDir.exists() ) {
+        baseDir.mkdir(dirName);
+    }
+
+    return newDir;
+}
+
+QString getFilePath(QDir baseDir, QString fileName, QString suffix) {
+    return baseDir.absoluteFilePath(fileName + QChar('.') + suffix);
+}
+
+QByteArray createFileFromDataUri(QByteArray & dataUri) {
+    QString path;
+
+    QDir currentDirectory = QDir::current();
+
+    if ( !currentDirectory.cd("attachmentes") ) {
+        // Create attachements folder
+        currentDirectory.mkdir("attachmentes");
+        currentDirectory.cd("attachmentes");
+    }
+
+    uint index = 0;
+    QDir attachmentsSubFolder = getOrCreate(currentDirectory, QString::number(index));
+    while ( attachmentsSubFolder.count() > 255 ) {
+        index++;
+        attachmentsSubFolder =
+                getOrCreate(currentDirectory, QString::number(index));
+    }
+
+    if ( dataUri.startsWith("data:") ) {
+        // Remove unused part
+        dataUri = dataUri.remove(0, QString("data:").length());
+    }
+    else if ( dataUri.startsWith("unsafe:data:") ) {
+        // Remove unused part
+        dataUri = dataUri.remove(0, QString("unsafe:data:").length());
+    }
+
+    // data:image/png;base64,
+    QByteArrayList splittedDataUri = dataUri.split(',');
+    QByteArray data = QByteArray::fromBase64(splittedDataUri.at(1));
+
+    QMimeDatabase db;
+    QMimeType mime = db.mimeTypeForData(data);
+    QString suffix = mime.preferredSuffix();
+
+    if ( suffix.isEmpty() ) {
+        suffix = ".unknown";
+    }
+
+    index = 0;
+    QFile dataFile;
+
+    do {
+        path = getFilePath(attachmentsSubFolder, QString::number(index), suffix);
+        dataFile.setFileName(path);
+    } while (dataFile.exists());
+
+    dataFile.open(QIODevice::WriteOnly);
+    dataFile.write(data);
+    dataFile.close();
+
+    return path.toUtf8();
 }

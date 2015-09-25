@@ -29,6 +29,7 @@ public:
 signals:
     void connected();
     void receivedUserMessage(const QString & username, const QString & message);
+    void receivedUserFile(const QString & username, const QString & fileUrl);
     void connectionToUserEstablished(const QString & username);
     void error(QAbstractSocket::SocketError);
 

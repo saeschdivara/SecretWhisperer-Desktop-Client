@@ -133,7 +133,7 @@
     '$rootScope', '$scope', 'MessageQueue', function($rootScope, $scope, MessageQueue) {
       var ChatContact, ChatController, ChatMessage, controller;
       ChatMessage = (function() {
-        function ChatMessage(message, from_me, from_contact) {
+        function ChatMessage(message, from_me, from_contact, is_file) {
 
           /*
            */
@@ -145,20 +145,29 @@
           } else if (this.is_from_contact) {
             this.message_classes = ['partner-message', 'blue', 'darken-1'];
           }
-          this.message_type = this.getType();
+          if (is_file) {
+            this.message_type = this.getType();
+          } else {
+            this.message_type = 'text';
+          }
         }
 
         ChatMessage.prototype.getType = function() {
 
           /*
            */
-          if (this.message.indexOf('data:') === 0) {
-            if (this.message.indexOf('data:image') === 0) {
-              return 'image';
-            }
+          if (this.message.indexOf('.jpg') > -1) {
+            return 'image';
           } else {
-            return 'text';
+            return 'downloadable';
           }
+        };
+
+        ChatMessage.prototype.link = function() {
+
+          /*
+           */
+          return this.message;
         };
 
         ChatMessage.prototype.image = function() {
@@ -202,6 +211,7 @@
 
         function ChatController() {
           this.onContactAdded = bind(this.onContactAdded, this);
+          this.onFileFromContact = bind(this.onFileFromContact, this);
           this.onMessageFromContact = bind(this.onMessageFromContact, this);
           this.onMessageFromMe = bind(this.onMessageFromMe, this);
           this.onUploadFile = bind(this.onUploadFile, this);
@@ -303,6 +313,27 @@
           return $scope.$apply();
         };
 
+        ChatController.prototype.onFileFromContact = function(message) {
+
+          /*
+           */
+          var contact, i, len, message_text, ref, username;
+          username = message.contact;
+          message_text = message.message;
+          if (this.current_contact.username === username) {
+            this.current_messages.push(new ChatMessage(message_text, false, true));
+          } else {
+            ref = this.contacts;
+            for (i = 0, len = ref.length; i < len; i++) {
+              contact = ref[i];
+              if (contact.username === username) {
+                contact.messages.push(new ChatMessage(message_text, false, true, true));
+              }
+            }
+          }
+          return $scope.$apply();
+        };
+
         ChatController.prototype.onContactAdded = function(username) {
 
           /*
@@ -340,6 +371,7 @@
       MessageQueue.$subscribe('add-contact', controller.onContactAdded);
       MessageQueue.$subscribe('new-message-from-me', controller.onMessageFromMe);
       MessageQueue.$subscribe('new-message-from-other', controller.onMessageFromContact);
+      MessageQueue.$subscribe('new-file-from-other', controller.onFileFromContact);
       return controller;
     }
   ]);
