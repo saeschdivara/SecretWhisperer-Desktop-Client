@@ -25,3 +25,5 @@ Versions
 - Playing sent video files
 
 ### 0.4
+
+- Group chat
