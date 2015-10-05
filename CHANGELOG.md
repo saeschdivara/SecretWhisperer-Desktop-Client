@@ -18,3 +18,10 @@ Versions
 
 ### 0.3
 
+- Upload and download percentage in the user interface
+- Settings
+-- Exchanged files
+- Playing sent audio files
+- Playing sent video files
+
+### 0.4
