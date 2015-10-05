@@ -5,6 +5,7 @@ Versions
 
 ### 0.2
 - File transfers (big encrypted texts)
+- Images are being displayed in the client
 - Encrypted peer certificate (user authentication)
 
 ## Old
