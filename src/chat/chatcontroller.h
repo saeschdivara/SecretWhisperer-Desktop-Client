@@ -35,6 +35,12 @@ signals:
 
 public slots:
 
+    // Views
+
+    void onLinkClicked(const QUrl & url);
+
+    // On protocol
+
     void onConnectionEstablished();
     void onError(const QList<QSslError> &errors);
     void onSocketError(QAbstractSocket::SocketError error);

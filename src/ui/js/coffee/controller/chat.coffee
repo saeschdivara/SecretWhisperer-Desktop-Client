@@ -39,7 +39,7 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             ###
             ###
 
-            if @message.indexOf('.jpg') > -1
+            if @message.indexOf('.jpg') > -1 or @message.indexOf('.png') > -1
                 'image'
             else
                 'downloadable'
@@ -190,12 +190,12 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
 
             if @current_contact.username == username
                 @current_messages.push(
-                    new ChatMessage(message_text, false, true)
+                    new ChatMessage(message_text, false, true, false)
                 )
             else
                 for contact in @contacts
                     if contact.username == username
-                        contact.messages.push(new ChatMessage(message_text, false, true))
+                        contact.messages.push(new ChatMessage(message_text, false, true, false))
 
             $scope.$apply()
 
@@ -209,7 +209,7 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
 
             if @current_contact.username == username
                 @current_messages.push(
-                    new ChatMessage(message_text, false, true)
+                    new ChatMessage(message_text, false, true, true)
                 )
             else
                 for contact in @contacts

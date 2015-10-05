@@ -1,17 +1,21 @@
 #include "chatcontroller.h"
 
 // QT
+#include <QtGui/QDesktopServices>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QMimeDatabase>
 #include <QtCore/QMimeType>
 #include <QtCore/QThread>
+#include <QtCore/QUrl>
 
 // BOTAN
 #include <botan/serpent.h>
 #include <botan/hmac.h>
 #include <botan/sha160.h>
 #include <botan/dlies.h>
+
+const QString attachmentFolderName("attachmentes");
 
 QByteArray createFileFromDataUri(QByteArray & dataUri);
 
@@ -59,6 +63,21 @@ void ChatController::listenOnProtocol()
     connect( protocol, &ProtocolController::signalIdentityCheck, this, &ChatController::onIdentityCheckEvent );
     connect( protocol, &ProtocolController::signalEncrypt, this, &ChatController::onEncryptEvent );
     connect( protocol, &ProtocolController::signalMessage, this, &ChatController::onMessageEvent );
+}
+
+void ChatController::onLinkClicked(const QUrl &url)
+{
+    qDebug() << "Link clicked: " << url;
+    QString dataPath("stream://data.local/");
+    QString path(url.path());
+
+    if ( path.startsWith(dataPath) ) {
+        path = path.replace(dataPath, "");
+
+        QDir currentPath = QDir::current();
+        QString filePath = currentPath.absoluteFilePath(path);
+        QDesktopServices::openUrl(QUrl(filePath));
+    }
 }
 
 /**
@@ -163,7 +182,6 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
     QByteArray messageData = message.toUtf8();
     QByteArray encryptedMessage = protocol->encryptWithSymmetricKey(user, messageData);
 
-    //qDebug() << "Encrypted message: " << encryptedMessage;
     connector->onMessage(QByteArray("SEND:"), username.toUtf8(), encryptedMessage);
 }
 
@@ -263,10 +281,10 @@ QByteArray createFileFromDataUri(QByteArray & dataUri) {
 
     QDir currentDirectory = QDir::current();
 
-    if ( !currentDirectory.cd("attachmentes") ) {
+    if ( !currentDirectory.cd(attachmentFolderName) ) {
         // Create attachements folder
-        currentDirectory.mkdir("attachmentes");
-        currentDirectory.cd("attachmentes");
+        currentDirectory.mkdir(attachmentFolderName);
+        currentDirectory.cd(attachmentFolderName);
     }
 
     uint index = 0;
@@ -295,7 +313,7 @@ QByteArray createFileFromDataUri(QByteArray & dataUri) {
     QString suffix = mime.preferredSuffix();
 
     if ( suffix.isEmpty() ) {
-        suffix = ".unknown";
+        suffix = "unknown";
     }
 
     index = 0;
@@ -304,11 +322,15 @@ QByteArray createFileFromDataUri(QByteArray & dataUri) {
     do {
         path = getFilePath(attachmentsSubFolder, QString::number(index), suffix);
         dataFile.setFileName(path);
+        index++;
     } while (dataFile.exists());
 
     dataFile.open(QIODevice::WriteOnly);
     dataFile.write(data);
     dataFile.close();
+
+    int indexAttachmentsFolder = path.indexOf(attachmentFolderName);
+    path = QString("stream://data.local") + path.right(path.length() - indexAttachmentsFolder + 1);
 
     return path.toUtf8();
 }

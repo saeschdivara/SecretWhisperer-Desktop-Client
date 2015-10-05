@@ -1,11 +1,17 @@
 (function() {
-  var _class_instance_ChatController, _class_instance_MessageQueue, chatApp, create_message_from_me, create_message_to_me, getRandomHexString, log, onDocumentReady,
+  var _class_instance_ChatController, _class_instance_MessageQueue, chatApp, create_file_message_to_me, create_message_from_me, create_message_to_me, getRandomHexString, log, onDocumentReady,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   onDocumentReady = function() {
-    var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserMessageReceived;
+    var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
     onUserMessageReceived = function(username, message) {
       return create_message_to_me({
+        contact: username,
+        message: message
+      });
+    };
+    onUserFileReceived = function(username, message) {
+      return create_file_message_to_me({
         contact: username,
         message: message
       });
@@ -31,7 +37,8 @@
         jQuery('#userbox').hide();
         jQuery('#submit-other-user-button').click(onUserChosen);
         chat.connectionToUserEstablished.connect(onUserAdded);
-        return chat.receivedUserMessage.connect(onUserMessageReceived);
+        chat.receivedUserMessage.connect(onUserMessageReceived);
+        return chat.receivedUserFile.connect(onUserFileReceived);
       });
     };
     onServerError = function(error) {
@@ -52,6 +59,10 @@
 
   create_message_to_me = function(message) {
     return _class_instance_MessageQueue.$publish('new-message-from-other', message);
+  };
+
+  create_file_message_to_me = function(message) {
+    return _class_instance_MessageQueue.$publish('new-file-from-other', message);
   };
 
   chatApp = angular.module('chatApp', []);
@@ -156,7 +167,7 @@
 
           /*
            */
-          if (this.message.indexOf('.jpg') > -1) {
+          if (this.message.indexOf('.jpg') > -1 || this.message.indexOf('.png') > -1) {
             return 'image';
           } else {
             return 'downloadable';
@@ -300,13 +311,13 @@
           username = message.contact;
           message_text = message.message;
           if (this.current_contact.username === username) {
-            this.current_messages.push(new ChatMessage(message_text, false, true));
+            this.current_messages.push(new ChatMessage(message_text, false, true, false));
           } else {
             ref = this.contacts;
             for (i = 0, len = ref.length; i < len; i++) {
               contact = ref[i];
               if (contact.username === username) {
-                contact.messages.push(new ChatMessage(message_text, false, true));
+                contact.messages.push(new ChatMessage(message_text, false, true, false));
               }
             }
           }
@@ -321,7 +332,7 @@
           username = message.contact;
           message_text = message.message;
           if (this.current_contact.username === username) {
-            this.current_messages.push(new ChatMessage(message_text, false, true));
+            this.current_messages.push(new ChatMessage(message_text, false, true, true));
           } else {
             ref = this.contacts;
             for (i = 0, len = ref.length; i < len; i++) {

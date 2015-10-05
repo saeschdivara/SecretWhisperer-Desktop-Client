@@ -13,6 +13,12 @@ onDocumentReady = () ->
             message: message
         )
 
+    onUserFileReceived = (username, message) ->
+        create_file_message_to_me(
+            contact: username
+            message: message
+        )
+
 
     #############################
     ## USER CALLBACKS
@@ -49,6 +55,7 @@ onDocumentReady = () ->
 
                 chat.connectionToUserEstablished.connect(onUserAdded)
                 chat.receivedUserMessage.connect(onUserMessageReceived)
+                chat.receivedUserFile.connect(onUserFileReceived)
         )
 
     onServerError = (error) ->
