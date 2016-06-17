@@ -1,12 +1,15 @@
 (function() {
-  var _class_instance_ChatController, _class_instance_MessageQueue, chatApp, create_file_message_to_me, create_message_from_me, create_message_to_me, getRandomHexString, log, onDocumentReady,
+  var _class_instance_ChatController, _class_instance_MessageQueue, chatApp, create_file_message_to_me, create_message_from_me, create_message_to_me, getRandomHexString, log, mainFunction, onDocumentReady, startUpWithWebChannel,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  onDocumentReady = function() {
-    var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
-    new QWebChannel(qt.webChannelTransport, function(channel) {
-      return console.log(channel.objects.chat);
+  startUpWithWebChannel = function() {
+    return new QWebChannel(qt.webChannelTransport, function(channel) {
+      return mainFunction(channel.objects.chat);
     });
+  };
+
+  mainFunction = function(chat) {
+    var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
     onUserMessageReceived = function(username, message) {
       return create_message_to_me({
         contact: username,
@@ -52,6 +55,10 @@
     chat.connectToServer(window.CHAT_SERVER_URL, 8888);
     console.log('connected to the server');
     return jQuery('#chatbox').hide();
+  };
+
+  onDocumentReady = function() {
+    return startUpWithWebChannel();
   };
 
   jQuery(document).ready(onDocumentReady);

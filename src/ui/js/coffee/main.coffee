@@ -1,14 +1,15 @@
 
+startUpWithWebChannel = () ->
 
-onDocumentReady = () ->
     new QWebChannel(qt.webChannelTransport, (channel) ->
-      console.log(channel.objects.chat)
-    ) 
+        mainFunction(channel.objects.chat)
+    )
+
+mainFunction = (chat) ->
 
     ############################
     ## MESSAGES CALLBACKS
     ###########################
-
 
     onUserMessageReceived = (username, message) ->
         create_message_to_me(
@@ -73,6 +74,8 @@ onDocumentReady = () ->
 
     jQuery('#chatbox').hide()
 
-
+onDocumentReady = () ->
+    # Starting first to connect to web channel
+    startUpWithWebChannel()
 
 jQuery(document).ready(onDocumentReady)
