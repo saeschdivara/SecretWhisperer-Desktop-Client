@@ -1,7 +1,7 @@
 TEMPLATE = app
 CONFIG   -= app_bundle
 
-QT += widgets webkitwidgets sql
+QT += widgets webenginewidgets webchannel sql
 
 CONFIG += c++11
 
@@ -27,10 +27,17 @@ DISTFILES += \
     ui/interface/index.html
 
 # Lib Botan: https://github.com/randombit/botan
-unix|win32: LIBS += -L/usr/local/lib/ -lbotan-1.11
+unix:!macx|win32: {
+    LIBS += -L/usr/local/lib/ -lbotan-1.11
+    INCLUDEPATH += /usr/local/include/botan-1.11/
+    DEPENDPATH += /usr/local/include/botan-1.11/
+}
+macx: {
+    LIBS += -L/usr/local/opt/botan/lib/ -lbotan-1.10
+    INCLUDEPATH += /usr/local/opt/botan/include/botan-1.10/
+    DEPENDPATH += /usr/local/opt/botan/include/botan-1.10/
+}
 
-INCLUDEPATH += /usr/local/include/botan-1.11/
-DEPENDPATH += /usr/local/include/botan-1.11/
 
 #DEFINES += USE_SNORTIFY
 

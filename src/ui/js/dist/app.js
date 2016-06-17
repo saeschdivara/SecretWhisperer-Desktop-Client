@@ -4,6 +4,9 @@
 
   onDocumentReady = function() {
     var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+      return console.log(channel.objects.chat);
+    });
     onUserMessageReceived = function(username, message) {
       return create_message_to_me({
         contact: username,

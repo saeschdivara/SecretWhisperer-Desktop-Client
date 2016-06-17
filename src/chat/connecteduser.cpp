@@ -18,7 +18,7 @@ ConnectedUser::ConnectedUser(Botan::Public_Key *publicKey, Botan::Private_Key *p
 QByteArray ConnectedUser::getDataFromPublicKey()
 {
     QByteArray keyData;
-    std::vector<unsigned char> keyDataArray = publicRsaKey->x509_subject_public_key();
+    auto keyDataArray = publicRsaKey->x509_subject_public_key();
 
     const uint total = keyDataArray.size();
     keyData.reserve(total);

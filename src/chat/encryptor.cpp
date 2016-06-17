@@ -52,13 +52,13 @@ QByteArray Encryptor::encryptAsymmetricly(ConnectedUser *user, std::string &data
 
     Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
     Botan::AutoSeeded_RNG rng;
-    std::vector<Botan::byte> ciphertext = encryptor.encrypt(msgtoencrypt, DATA_SIZE, rng);
+    auto ciphertext = encryptor.encrypt(msgtoencrypt, DATA_SIZE, rng);
 
     QByteArray keyCipherData;
     keyCipherData.resize(ciphertext.size());
 
     for ( uint i = 0; i < ciphertext.size(); i++ ) {
-        keyCipherData[i] = ciphertext.at(i);
+        keyCipherData[i] = ciphertext[i];
     }
 
     return keyCipherData;
@@ -78,7 +78,7 @@ QByteArray Encryptor::decryptAsymmetricly(ConnectedUser *user, QByteArray &data)
     }
 
     // Decrypt key with private key
-    Botan::secure_vector<Botan::byte> decryptedSerpentKey = decryptor.decrypt(msgToDecrypt, DATA_SIZE);
+    auto decryptedSerpentKey = decryptor.decrypt(msgToDecrypt, DATA_SIZE);
 
     // The key is transfered in hex
     QByteArray decryptedData;

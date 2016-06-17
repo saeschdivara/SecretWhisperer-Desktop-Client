@@ -1,6 +1,9 @@
 
 
 onDocumentReady = () ->
+    new QWebChannel(qt.webChannelTransport, (channel) ->
+      console.log(channel.objects.chat)
+    ) 
 
     ############################
     ## MESSAGES CALLBACKS
