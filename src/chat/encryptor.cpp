@@ -1,6 +1,7 @@
 #include "encryptor.h"
 
 #include <botan/cryptobox.h>
+#include <QtCore/QDebug>
 
 const size_t SERPENT_KEY_SIZE = 128;
 
@@ -42,12 +43,12 @@ Botan::SymmetricKey Encryptor::createSymmetricKey()
 
 QByteArray Encryptor::encryptAsymmetricly(ConnectedUser *user, std::string &data)
 {
-    const uint DATA_SIZE = data.size();
+    const unsigned long DATA_SIZE = data.size();
     Botan::byte msgtoencrypt[DATA_SIZE];
 
     for (uint i = 0; i < DATA_SIZE; i++)
     {
-        msgtoencrypt[i] = data[i];
+        msgtoencrypt[i] = static_cast<unsigned char>(data[i]);
     }
 
     Botan::PK_Encryptor_EME encryptor(user->publicKey(), "EME1(SHA-256)");
@@ -58,7 +59,7 @@ QByteArray Encryptor::encryptAsymmetricly(ConnectedUser *user, std::string &data
     keyCipherData.resize(ciphertext.size());
 
     for ( uint i = 0; i < ciphertext.size(); i++ ) {
-        keyCipherData[i] = ciphertext[i];
+        keyCipherData[i] = static_cast<char>(ciphertext[i]);
     }
 
     return keyCipherData;
@@ -85,7 +86,7 @@ QByteArray Encryptor::decryptAsymmetricly(ConnectedUser *user, QByteArray &data)
 
     for (uint i = 0; i < decryptedSerpentKey.size(); ++i) {
         Botan::byte dataByte = decryptedSerpentKey[i];
-        decryptedData.append((char) dataByte);
+        decryptedData.append(static_cast<char>(dataByte));
     }
 
     return decryptedData;
@@ -103,7 +104,7 @@ QByteArray Encryptor::encryptSymmetricly(std::string password, QByteArray data)
     //inputData.reserve(inputSize);
 
     for (int i = 0; i < inputSize; ++i) {
-        inputData.push_back(data.at(i));
+        inputData.push_back(static_cast<unsigned char>(data.at(i)));
     }
 
     return encryptSymmetricly(password, inputData);
