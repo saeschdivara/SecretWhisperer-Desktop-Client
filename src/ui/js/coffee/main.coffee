@@ -7,6 +7,9 @@ startUpWithWebChannel = () ->
 
 mainFunction = (chat) ->
 
+    # Expose chat as global object
+    window.chat = chat
+
     ############################
     ## MESSAGES CALLBACKS
     ###########################

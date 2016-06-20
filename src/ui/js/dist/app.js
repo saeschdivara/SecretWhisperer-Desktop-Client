@@ -10,6 +10,7 @@
 
   mainFunction = function(chat) {
     var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
+    window.chat = chat;
     onUserMessageReceived = function(username, message) {
       return create_message_to_me({
         contact: username,
