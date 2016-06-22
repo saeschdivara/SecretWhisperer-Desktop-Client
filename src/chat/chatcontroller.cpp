@@ -81,6 +81,16 @@ void ChatController::onLinkClicked(const QUrl &url)
 }
 
 /**
+ * @brief ChatController::loadContacts
+ */
+void ChatController::loadContacts()
+{
+    contacts = identity->getContacts();
+    qDebug() << "Contacts loaded: " << contacts.keys();
+    emit contactsLoaded(contacts.keys().join("|"));
+}
+
+/**
  * @brief ChatController::onConnectionEstablished
  */
 void ChatController::onConnectionEstablished()
@@ -132,9 +142,11 @@ void ChatController::chooseUserName(const QString &username, const QString &pass
     qDebug() << "Choosing username";
 
     identity->createUserIdentity(username, password);
+
     connector->onMessage(QByteArray("USER:"),
                          username.toUtf8(),
                          QByteArray::fromStdString(identity->getSymmetricKeyString()));
+
 }
 
 /**
@@ -151,12 +163,18 @@ void ChatController::connectToUser(const QString &username)
         ConnectedUser * user = protocol->createUser();
         connectedUsers.insert(username.toUtf8(), user);
 
-        QByteArray pub = user->getDataFromPublicKey();
+        QByteArray publicKey = user->getDataFromPublicKey();
 
         emit connectionToUserEstablished(username);
 
+        // Create contact
+        if (!contacts.contains(username)) {
+            identity->addContact(username, publicKey);
+            contacts.insert(username, user);
+        }
+
         // Send public key to the other user
-        connector->onMessage(QByteArray("CONNECT:"), username.toUtf8(), pub);
+        connector->onMessage(QByteArray("CONNECT:"), username.toUtf8(), publicKey);
     }
     catch(std::exception &e)
     {
@@ -205,6 +223,12 @@ void ChatController::onStartupEvent(const QByteArray &username, QByteArray & pub
     }
 
     emit connectionToUserEstablished(username);
+
+    // Create contact
+    if (!contacts.contains(username)) {
+        identity->addContact(username, publicKey);
+        contacts.insert(username, user);
+    }
 
     protocol->createSymmetricKeyForUser(user);
 

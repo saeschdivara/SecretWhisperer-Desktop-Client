@@ -9,7 +9,7 @@
   };
 
   mainFunction = function(chat) {
-    var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
+    var onContactsLoaded, onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
     window.chat = chat;
     onUserMessageReceived = function(username, message) {
       return create_message_to_me({
@@ -33,6 +33,16 @@
       _class_instance_MessageQueue.$publish('add-contact', username);
       return jQuery('#chatbox').show();
     };
+    onContactsLoaded = function(contactsString) {
+      var contact, contacts, i, len, results;
+      contacts = contactsString.split('|');
+      results = [];
+      for (i = 0, len = contacts.length; i < len; i++) {
+        contact = contacts[i];
+        results.push(onUserAdded(contact));
+      }
+      return results;
+    };
     onServerConnect = function() {
       console.log('Connected');
       return jQuery('#submit-user-button').click(function() {
@@ -44,8 +54,10 @@
         jQuery('#userbox').hide();
         jQuery('#submit-other-user-button').click(onUserChosen);
         chat.connectionToUserEstablished.connect(onUserAdded);
+        chat.contactsLoaded.connect(onContactsLoaded);
         chat.receivedUserMessage.connect(onUserMessageReceived);
-        return chat.receivedUserFile.connect(onUserFileReceived);
+        chat.receivedUserFile.connect(onUserFileReceived);
+        return chat.loadContacts();
       });
     };
     onServerError = function(error) {

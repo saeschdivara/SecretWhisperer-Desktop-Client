@@ -133,11 +133,14 @@ void IdentityController::addContact(const QString &username, const QByteArray &p
 {
     QSqlQuery query(database);
 
-    query.prepare("INSERT INTO user (user_name, public_key, connected_user) VALUES (?, ?, ?)");
+    query.prepare("INSERT INTO contact (user_name, public_key, connected_user) VALUES (?, ?, ?)");
     query.addBindValue(username);
     query.addBindValue(publicKey);
     query.addBindValue(user->userName());
-    query.exec();
+
+    if ( !query.exec() ) {
+        qWarning() << "Error contact: " << query.lastError();
+    }
 }
 
 /**

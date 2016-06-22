@@ -44,6 +44,13 @@ mainFunction = (chat) ->
         jQuery('#chatbox').show()
 
 
+    onContactsLoaded = (contactsString) ->
+        contacts = contactsString.split('|')
+
+        for contact in contacts
+            onUserAdded(contact)
+
+
     onServerConnect = () ->
         console.log('Connected')
 
@@ -61,8 +68,11 @@ mainFunction = (chat) ->
                 jQuery('#submit-other-user-button').click(onUserChosen)
 
                 chat.connectionToUserEstablished.connect(onUserAdded)
+                chat.contactsLoaded.connect(onContactsLoaded)
                 chat.receivedUserMessage.connect(onUserMessageReceived)
                 chat.receivedUserFile.connect(onUserFileReceived)
+
+                chat.loadContacts()
         )
 
     onServerError = (error) ->
