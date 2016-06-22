@@ -26,15 +26,20 @@ void IdentityController::createUserIdentity(const QString & username, const QStr
     migrations = new MigrationHelper(database, this);
     createDatabaseTables();
 
-
     QSqlQuery query("SELECT * FROM user WHERE user_name = '" + username + "'", database);
 
     // Check if the users identity has not been generated yet
     if ( !query.next() ) {
 
+        // Create public and private keys
         KeyPair pair = encryptor->createAsymmetricKeys();
+
+        // Init user
         user = new ConnectedUser( pair.publicKey, pair.privateKey );
         user->setSymmetricKey( encryptor->createSymmetricKey() );
+        user->setUserName(username);
+
+        // Store user data in database
         std::string symmetricKey = user->symmetricKey().as_string();
 
         std::string pub = Botan::X509::PEM_encode(user->publicKey());
@@ -108,6 +113,7 @@ void IdentityController::createUserIdentity(const QString & username, const QStr
 
         user = new ConnectedUser( publicRsaKey, privateRsaKey );
         user->setSymmetricKey(symmetricKey);
+        user->setUserName(username);
     }
 
 }
@@ -115,6 +121,54 @@ void IdentityController::createUserIdentity(const QString & username, const QStr
 std::string IdentityController::getSymmetricKeyString()
 {
     return Botan::X509::PEM_encode(user->publicKey());
+}
+
+/**
+ * @brief Adds contact data to the database
+ *
+ * @param username Contact username
+ * @param publicKey Contact public key
+ */
+void IdentityController::addContact(const QString &username, const QByteArray &publicKey)
+{
+    QSqlQuery query(database);
+
+    query.prepare("INSERT INTO user (user_name, public_key, connected_user) VALUES (?, ?, ?)");
+    query.addBindValue(username);
+    query.addBindValue(publicKey);
+    query.addBindValue(user->userName());
+    query.exec();
+}
+
+/**
+ * @brief Retrieves all contacts for the current user from the database
+ *
+ * @return Returns contacts map where the key is the username
+ */
+QHash<QString, ConnectedUser *> IdentityController::getContacts()
+{
+    QHash<QString, ConnectedUser *> contacts;
+
+    // Retrieve contacts from the database
+    QSqlQuery query("SELECT * FROM contact WHERE connected_user = '" + user->userName() + "'", database);
+
+    while(query.next()) {
+        // Get database values
+        QSqlRecord record = query.record();
+        QString userName = record.value("user_name").toString();
+        QByteArray publicKeyData = record.value("public_key").toByteArray();
+
+        // Load public key
+        Botan::DataSource_Memory key_pub(publicKeyData.toStdString());
+        auto publicKey = Botan::X509::load_key(key_pub);
+
+        ConnectedUser * contact = new ConnectedUser( publicKey );
+        contact->setUserName(userName);
+
+        contacts.insert(userName, contact);
+    }
+
+    return contacts;
 }
 
 void IdentityController::createDatabaseConnection()
@@ -132,6 +186,7 @@ void IdentityController::createDatabaseConnection()
 void IdentityController::createDatabaseTables()
 {
     loadTable(database, QString("user"));
+    loadTable(database, QString("contact"));
 
     // Create migrations
     if ( !migrations->hasMigrationsTable() ) {

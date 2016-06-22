@@ -24,7 +24,8 @@ RESOURCES += \
 include(deployment.pri)
 
 DISTFILES += \
-    ui/interface/index.html
+    ui/interface/index.html \
+    sql/contact.sql
 
 # Lib Botan: https://github.com/randombit/botan
 unix:!macx|win32: {

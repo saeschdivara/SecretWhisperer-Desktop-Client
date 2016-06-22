@@ -38,6 +38,14 @@ public:
 
     QByteArray getDataFromPublicKey();
 
+    QString userName() const {
+        return _username;
+    }
+
+    void setUserName(const QString & userName) {
+        _username = userName;
+    }
+
 signals:
 
 public slots:
@@ -49,6 +57,8 @@ private:
     bool hasUserInitieted;
 
     Botan::SymmetricKey encryptionKey;
+
+    QString _username;
 };
 
 #endif // CONNECTEDUSER_H

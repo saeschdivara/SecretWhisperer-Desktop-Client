@@ -30,5 +30,6 @@
         <file>sql/user.sql</file>
         <file>sql/migrations/0.sql</file>
         <file>sql/migrations.sql</file>
+        <file>sql/contact.sql</file>
     </qresource>
 </RCC>
