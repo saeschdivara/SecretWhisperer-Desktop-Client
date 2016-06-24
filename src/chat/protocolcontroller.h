@@ -31,6 +31,7 @@ signals:
     void signalEncrypt(const QByteArray & username, QByteArray & message);
     void signalMessage(const QByteArray & username, QByteArray & message);
     void signalIdentityCheck(QByteArray &);
+    void signalUserOnline(QString username);
     void signalError(QByteArray);
 
 public slots:

@@ -63,6 +63,7 @@ void ChatController::listenOnProtocol()
     connect( protocol, &ProtocolController::signalIdentityCheck, this, &ChatController::onIdentityCheckEvent );
     connect( protocol, &ProtocolController::signalEncrypt, this, &ChatController::onEncryptEvent );
     connect( protocol, &ProtocolController::signalMessage, this, &ChatController::onMessageEvent );
+    connect( protocol, &ProtocolController::signalUserOnline, this, &ChatController::connectToUser );
 }
 
 void ChatController::onLinkClicked(const QUrl &url)

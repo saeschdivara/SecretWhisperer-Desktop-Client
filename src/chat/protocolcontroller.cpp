@@ -80,7 +80,7 @@ void ProtocolController::onServerDataEvent(QByteArray &data)
 {
     const QByteArray seperator("\r\n");
 
-    if ( data.indexOf("MESSAGE:") == 0 ) {
+    if ( data.startsWith("MESSAGE:") ) {
         QByteArray preparedData = prepareRequest(data, QByteArrayLiteral("MESSAGE:"));
 
         if ( preparedData.size() > 0 ) {
@@ -93,7 +93,7 @@ void ProtocolController::onServerDataEvent(QByteArray &data)
             signalMessage(username, message);
         }
     }
-    else if ( data.indexOf("STARTUP:") == 0 ) {
+    else if ( data.startsWith("STARTUP:") ) {
         QByteArray preparedData = prepareRequest(data, QByteArrayLiteral("STARTUP:"));
 
         if ( preparedData.size() > 0 ) {
@@ -106,7 +106,7 @@ void ProtocolController::onServerDataEvent(QByteArray &data)
             signalStartup(username, publicKey);
         }
     }
-    else if ( data.indexOf("ENCRYPT:") == 0 ) {
+    else if ( data.startsWith("ENCRYPT:") ) {
         QByteArray preparedData = prepareRequest(data, QByteArrayLiteral("ENCRYPT:"));
 
         if ( preparedData.size() > 0 ) {
@@ -119,11 +119,20 @@ void ProtocolController::onServerDataEvent(QByteArray &data)
             signalEncrypt(username, message);
         }
     }
-    else if ( data.indexOf("IDENTITY-CHECK:") == 0 ) {
+    else if ( data.startsWith("IDENTITY-CHECK:") ) {
         QByteArray encryptedRandomString = stripRequest(data, QByteArrayLiteral("IDENTITY-CHECK:"));
 
         if ( encryptedRandomString.size() > 0 ) {
             signalIdentityCheck(encryptedRandomString);
+        }
+    }
+    else if ( data.startsWith("NOTIFICATION:") ) {
+        QByteArray notificationString = stripRequest(data, QByteArrayLiteral("NOTIFICATION:"));
+
+        if ( notificationString.startsWith("ONLINE") ) {
+            int seperatorIndex = notificationString.indexOf(seperator);
+            QByteArray username = notificationString.mid(seperatorIndex + seperator.length());
+            emit signalUserOnline(username);
         }
     }
     else {
