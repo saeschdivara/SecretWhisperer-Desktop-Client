@@ -284,9 +284,9 @@ void ChatController::onMessageEvent(const QByteArray &username, QByteArray & mes
     }
     else {
         emit receivedUserMessage(username, decryptedMessage);
+        notifyer->showNotification(QStringLiteral("Message from ") + username, decryptedMessage);
     }
 
-    notifyer->showNotification(QStringLiteral("Message from ") + username, decryptedMessage);
 }
 
 /**
