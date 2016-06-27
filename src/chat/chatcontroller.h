@@ -60,6 +60,7 @@ public slots:
 protected slots:
 
     // Events helper
+    void onAuthenticationSucceded();
     void onStartupEvent(const QByteArray & username, QByteArray &publicKey);
     void onEncryptEvent(const QByteArray & username, QByteArray &message);
     void onMessageEvent(const QByteArray & username, QByteArray &message);

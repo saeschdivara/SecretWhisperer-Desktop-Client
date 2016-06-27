@@ -126,16 +126,25 @@ void ProtocolController::onServerDataEvent(QByteArray &data)
             signalIdentityCheck(encryptedRandomString);
         }
     }
+    else if ( data.startsWith("AUTHENTICATION-ACCEPTED") ) {
+        emit signalAuthenticationSucceded();
+    }
     else if ( data.startsWith("NOTIFICATION:") ) {
         QByteArray notificationString = stripRequest(data, QByteArrayLiteral("NOTIFICATION:"));
+
+        qDebug() << "Received notification: " << notificationString;
 
         if ( notificationString.startsWith("ONLINE") ) {
             int seperatorIndex = notificationString.indexOf(seperator);
             QByteArray username = notificationString.mid(seperatorIndex + seperator.length());
+
+            qDebug() << "User " << username << " is online";
+
             emit signalUserOnline(username);
         }
     }
     else {
+        qWarning() << "UNKNOWN ACTION";
         signalError(QByteArrayLiteral("UNKNOWN ACTION"));
     }
 }

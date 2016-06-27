@@ -59,6 +59,7 @@ void ChatController::listenOnProtocol()
     connect(connector, &Connector::newData, protocol, &ProtocolController::onServerDataEvent );
 
     // Protocol signals
+    connect( protocol, &ProtocolController::signalAuthenticationSucceded, this, &ChatController::onAuthenticationSucceded );
     connect( protocol, &ProtocolController::signalStartup, this, &ChatController::onStartupEvent );
     connect( protocol, &ProtocolController::signalIdentityCheck, this, &ChatController::onIdentityCheckEvent );
     connect( protocol, &ProtocolController::signalEncrypt, this, &ChatController::onEncryptEvent );
@@ -88,6 +89,7 @@ void ChatController::loadContacts()
 {
     contacts = identity->getContacts();
     qDebug() << "Contacts loaded: " << contacts.keys();
+
     emit contactsLoaded(contacts.keys().join("|"));
 }
 
@@ -204,6 +206,15 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
     connector->onMessage(QByteArray("SEND:"), username.toUtf8(), encryptedMessage);
 }
 
+void ChatController::onAuthenticationSucceded()
+{
+    qDebug() << "Authentication succeded";
+
+    for ( QString contactName : contacts.keys() ) {
+        connector->onMessage(QByteArrayLiteral("NOTIFY-USER-ONLINE:"), contactName.toUtf8());
+    }
+}
+
 /**
  * @brief ChatController::onStartupEvent
  * @param data
@@ -278,6 +289,10 @@ void ChatController::onMessageEvent(const QByteArray &username, QByteArray & mes
     notifyer->showNotification(QStringLiteral("Message from ") + username, decryptedMessage);
 }
 
+/**
+ * @brief ChatController::onIdentityCheckEvent
+ * @param encryptedRandomString
+ */
 void ChatController::onIdentityCheckEvent(QByteArray &encryptedRandomString)
 {
     QByteArray randomString = protocol->decryptWithAsymmetricKey(identity->getUser(), encryptedRandomString);
@@ -286,7 +301,16 @@ void ChatController::onIdentityCheckEvent(QByteArray &encryptedRandomString)
     connector->onMessage(QByteArray("AUTHENTICATE:"), randomStringHash);
 }
 
+// --------------------------------------------------------------------------------------------
+// HELPER FUNCTIONS
+// --------------------------------------------------------------------------------------------
 
+/**
+ * @brief getOrCreate
+ * @param baseDir
+ * @param dirName
+ * @return
+ */
 QDir getOrCreate(QDir baseDir, QString dirName) {
     QDir newDir(baseDir.absolutePath() + QDir::separator() + dirName);
 
@@ -297,10 +321,22 @@ QDir getOrCreate(QDir baseDir, QString dirName) {
     return newDir;
 }
 
+/**
+ * @brief getFilePath
+ * @param baseDir
+ * @param fileName
+ * @param suffix
+ * @return
+ */
 QString getFilePath(QDir baseDir, QString fileName, QString suffix) {
     return baseDir.absoluteFilePath(fileName + QChar('.') + suffix);
 }
 
+/**
+ * @brief createFileFromDataUri
+ * @param dataUri
+ * @return
+ */
 QByteArray createFileFromDataUri(QByteArray & dataUri) {
     QString path;
 
