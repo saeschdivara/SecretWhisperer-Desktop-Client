@@ -1,11 +1,18 @@
 
+startUpWithWebChannel = () ->
 
-onDocumentReady = () ->
+    new QWebChannel(qt.webChannelTransport, (channel) ->
+        mainFunction(channel.objects.chat)
+    )
+
+mainFunction = (chat) ->
+
+    # Expose chat as global object
+    window.chat = chat
 
     ############################
     ## MESSAGES CALLBACKS
     ###########################
-
 
     onUserMessageReceived = (username, message) ->
         create_message_to_me(
@@ -37,6 +44,13 @@ onDocumentReady = () ->
         jQuery('#chatbox').show()
 
 
+    onContactsLoaded = (contactsString) ->
+        contacts = contactsString.split('|')
+
+        for contact in contacts
+            onUserAdded(contact)
+
+
     onServerConnect = () ->
         console.log('Connected')
 
@@ -54,8 +68,11 @@ onDocumentReady = () ->
                 jQuery('#submit-other-user-button').click(onUserChosen)
 
                 chat.connectionToUserEstablished.connect(onUserAdded)
+                chat.contactsLoaded.connect(onContactsLoaded)
                 chat.receivedUserMessage.connect(onUserMessageReceived)
                 chat.receivedUserFile.connect(onUserFileReceived)
+
+                chat.loadContacts()
         )
 
     onServerError = (error) ->
@@ -70,7 +87,9 @@ onDocumentReady = () ->
 
     jQuery('#chatbox').hide()
 
-
+onDocumentReady = () ->
+    # Starting first to connect to web channel
+    startUpWithWebChannel()
 
 jQuery(document).ready(onDocumentReady)
 

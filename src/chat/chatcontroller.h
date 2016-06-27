@@ -32,12 +32,17 @@ signals:
     void receivedUserFile(const QString & username, const QString & fileUrl);
     void connectionToUserEstablished(const QString & username);
     void error(QAbstractSocket::SocketError);
+    void contactsLoaded(QString);
 
 public slots:
 
     // Views
 
     void onLinkClicked(const QUrl & url);
+
+    // Contacts
+
+    void loadContacts();
 
     // On protocol
 
@@ -55,6 +60,7 @@ public slots:
 protected slots:
 
     // Events helper
+    void onAuthenticationSucceded();
     void onStartupEvent(const QByteArray & username, QByteArray &publicKey);
     void onEncryptEvent(const QByteArray & username, QByteArray &message);
     void onMessageEvent(const QByteArray & username, QByteArray &message);
@@ -71,6 +77,7 @@ private:
 
     // Contacts
     QHash<QByteArray, ConnectedUser *> connectedUsers;
+    QHash<QString, ConnectedUser *> contacts;
 };
 
 #endif // CHATCONTROLLER_H

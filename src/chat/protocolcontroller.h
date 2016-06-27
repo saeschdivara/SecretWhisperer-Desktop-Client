@@ -27,10 +27,12 @@ public:
     QByteArray decryptWithSymmetricKey(ConnectedUser * user, QByteArray & data);
 
 signals:
+    void signalAuthenticationSucceded();
     void signalStartup(const QByteArray & username, QByteArray & publicKey);
     void signalEncrypt(const QByteArray & username, QByteArray & message);
     void signalMessage(const QByteArray & username, QByteArray & message);
     void signalIdentityCheck(QByteArray &);
+    void signalUserOnline(QString username);
     void signalError(QByteArray);
 
 public slots:

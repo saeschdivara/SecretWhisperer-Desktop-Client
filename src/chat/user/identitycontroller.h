@@ -14,6 +14,8 @@ class IdentityController : public QObject
     Q_OBJECT
 public:
     explicit IdentityController(QObject *parent = 0);
+
+    // User specific
     void createUserIdentity(const QString &username, const QString &password);
 
     ConnectedUser * getUser() {
@@ -21,6 +23,10 @@ public:
     }
 
     std::string getSymmetricKeyString();
+
+    // Contact specific
+    void addContact(const QString & username, const QByteArray & publicKey);
+    QHash<QString, ConnectedUser *> getContacts();
 
 protected:
     void createDatabaseConnection();

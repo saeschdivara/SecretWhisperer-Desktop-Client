@@ -59,10 +59,12 @@ void ChatController::listenOnProtocol()
     connect(connector, &Connector::newData, protocol, &ProtocolController::onServerDataEvent );
 
     // Protocol signals
+    connect( protocol, &ProtocolController::signalAuthenticationSucceded, this, &ChatController::onAuthenticationSucceded );
     connect( protocol, &ProtocolController::signalStartup, this, &ChatController::onStartupEvent );
     connect( protocol, &ProtocolController::signalIdentityCheck, this, &ChatController::onIdentityCheckEvent );
     connect( protocol, &ProtocolController::signalEncrypt, this, &ChatController::onEncryptEvent );
     connect( protocol, &ProtocolController::signalMessage, this, &ChatController::onMessageEvent );
+    connect( protocol, &ProtocolController::signalUserOnline, this, &ChatController::connectToUser );
 }
 
 void ChatController::onLinkClicked(const QUrl &url)
@@ -78,6 +80,17 @@ void ChatController::onLinkClicked(const QUrl &url)
         QString filePath = currentPath.absoluteFilePath(path);
         QDesktopServices::openUrl(QUrl(filePath));
     }
+}
+
+/**
+ * @brief ChatController::loadContacts
+ */
+void ChatController::loadContacts()
+{
+    contacts = identity->getContacts();
+    qDebug() << "Contacts loaded: " << contacts.keys();
+
+    emit contactsLoaded(contacts.keys().join("|"));
 }
 
 /**
@@ -132,9 +145,11 @@ void ChatController::chooseUserName(const QString &username, const QString &pass
     qDebug() << "Choosing username";
 
     identity->createUserIdentity(username, password);
+
     connector->onMessage(QByteArray("USER:"),
                          username.toUtf8(),
                          QByteArray::fromStdString(identity->getSymmetricKeyString()));
+
 }
 
 /**
@@ -151,12 +166,18 @@ void ChatController::connectToUser(const QString &username)
         ConnectedUser * user = protocol->createUser();
         connectedUsers.insert(username.toUtf8(), user);
 
-        QByteArray pub = user->getDataFromPublicKey();
+        QByteArray publicKey = user->getDataFromPublicKey();
 
         emit connectionToUserEstablished(username);
 
+        // Create contact
+        if (!contacts.contains(username)) {
+            identity->addContact(username, publicKey);
+            contacts.insert(username, user);
+        }
+
         // Send public key to the other user
-        connector->onMessage(QByteArray("CONNECT:"), username.toUtf8(), pub);
+        connector->onMessage(QByteArray("CONNECT:"), username.toUtf8(), publicKey);
     }
     catch(std::exception &e)
     {
@@ -185,6 +206,15 @@ void ChatController::sendMessageToUser(const QString &username, const QString &m
     connector->onMessage(QByteArray("SEND:"), username.toUtf8(), encryptedMessage);
 }
 
+void ChatController::onAuthenticationSucceded()
+{
+    qDebug() << "Authentication succeded";
+
+    for ( QString contactName : contacts.keys() ) {
+        connector->onMessage(QByteArrayLiteral("NOTIFY-USER-ONLINE:"), contactName.toUtf8());
+    }
+}
+
 /**
  * @brief ChatController::onStartupEvent
  * @param data
@@ -205,6 +235,12 @@ void ChatController::onStartupEvent(const QByteArray &username, QByteArray & pub
     }
 
     emit connectionToUserEstablished(username);
+
+    // Create contact
+    if (!contacts.contains(username)) {
+        identity->addContact(username, publicKey);
+        contacts.insert(username, user);
+    }
 
     protocol->createSymmetricKeyForUser(user);
 
@@ -253,6 +289,10 @@ void ChatController::onMessageEvent(const QByteArray &username, QByteArray & mes
     notifyer->showNotification(QStringLiteral("Message from ") + username, decryptedMessage);
 }
 
+/**
+ * @brief ChatController::onIdentityCheckEvent
+ * @param encryptedRandomString
+ */
 void ChatController::onIdentityCheckEvent(QByteArray &encryptedRandomString)
 {
     QByteArray randomString = protocol->decryptWithAsymmetricKey(identity->getUser(), encryptedRandomString);
@@ -261,7 +301,16 @@ void ChatController::onIdentityCheckEvent(QByteArray &encryptedRandomString)
     connector->onMessage(QByteArray("AUTHENTICATE:"), randomStringHash);
 }
 
+// --------------------------------------------------------------------------------------------
+// HELPER FUNCTIONS
+// --------------------------------------------------------------------------------------------
 
+/**
+ * @brief getOrCreate
+ * @param baseDir
+ * @param dirName
+ * @return
+ */
 QDir getOrCreate(QDir baseDir, QString dirName) {
     QDir newDir(baseDir.absolutePath() + QDir::separator() + dirName);
 
@@ -272,10 +321,22 @@ QDir getOrCreate(QDir baseDir, QString dirName) {
     return newDir;
 }
 
+/**
+ * @brief getFilePath
+ * @param baseDir
+ * @param fileName
+ * @param suffix
+ * @return
+ */
 QString getFilePath(QDir baseDir, QString fileName, QString suffix) {
     return baseDir.absoluteFilePath(fileName + QChar('.') + suffix);
 }
 
+/**
+ * @brief createFileFromDataUri
+ * @param dataUri
+ * @return
+ */
 QByteArray createFileFromDataUri(QByteArray & dataUri) {
     QString path;
 

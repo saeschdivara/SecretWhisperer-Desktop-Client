@@ -1,9 +1,16 @@
 (function() {
-  var _class_instance_ChatController, _class_instance_MessageQueue, chatApp, create_file_message_to_me, create_message_from_me, create_message_to_me, getRandomHexString, log, onDocumentReady,
+  var _class_instance_ChatController, _class_instance_MessageQueue, chatApp, create_file_message_to_me, create_message_from_me, create_message_to_me, getRandomHexString, log, mainFunction, onDocumentReady, startUpWithWebChannel,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  onDocumentReady = function() {
-    var onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
+  startUpWithWebChannel = function() {
+    return new QWebChannel(qt.webChannelTransport, function(channel) {
+      return mainFunction(channel.objects.chat);
+    });
+  };
+
+  mainFunction = function(chat) {
+    var onContactsLoaded, onServerConnect, onServerError, onUserAdded, onUserChosen, onUserFileReceived, onUserMessageReceived;
+    window.chat = chat;
     onUserMessageReceived = function(username, message) {
       return create_message_to_me({
         contact: username,
@@ -26,6 +33,16 @@
       _class_instance_MessageQueue.$publish('add-contact', username);
       return jQuery('#chatbox').show();
     };
+    onContactsLoaded = function(contactsString) {
+      var contact, contacts, i, len, results;
+      contacts = contactsString.split('|');
+      results = [];
+      for (i = 0, len = contacts.length; i < len; i++) {
+        contact = contacts[i];
+        results.push(onUserAdded(contact));
+      }
+      return results;
+    };
     onServerConnect = function() {
       console.log('Connected');
       return jQuery('#submit-user-button').click(function() {
@@ -37,8 +54,10 @@
         jQuery('#userbox').hide();
         jQuery('#submit-other-user-button').click(onUserChosen);
         chat.connectionToUserEstablished.connect(onUserAdded);
+        chat.contactsLoaded.connect(onContactsLoaded);
         chat.receivedUserMessage.connect(onUserMessageReceived);
-        return chat.receivedUserFile.connect(onUserFileReceived);
+        chat.receivedUserFile.connect(onUserFileReceived);
+        return chat.loadContacts();
       });
     };
     onServerError = function(error) {
@@ -49,6 +68,10 @@
     chat.connectToServer(window.CHAT_SERVER_URL, 8888);
     console.log('connected to the server');
     return jQuery('#chatbox').hide();
+  };
+
+  onDocumentReady = function() {
+    return startUpWithWebChannel();
   };
 
   jQuery(document).ready(onDocumentReady);
