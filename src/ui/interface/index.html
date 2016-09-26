@@ -65,7 +65,15 @@
                                 </div>
 
                                 <div ng-switch-when="image">
-                                    <img src="{{ message.image() }}" alt="">
+                                    <img ng-src="{{ message.image() }}" alt="">
+                                </div>
+
+                                <div ng-switch-when="audio">
+                                    <audio ng-src="{{ message.audio() }}" controls></audio>
+                                </div>
+
+                                <div ng-switch-when="movie">
+                                    <video ng-src="{{ message.movie() }}" controls></video>
                                 </div>
 
                                 <div ng-switch-when="downloadable">

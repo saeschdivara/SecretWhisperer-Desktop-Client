@@ -14,7 +14,8 @@ SOURCES += main.cpp \
     chat/notificationcontroller.cpp \
     chat/user/identitycontroller.cpp \
     chat/helper/migrationhelper.cpp \
-    chat/helper/sql.cpp
+    chat/helper/sql.cpp \
+    chat/network/datanetworkhandler.cpp
 
 RESOURCES += \
     ui.qrc
@@ -70,4 +71,5 @@ HEADERS += \
     chat/notificationcontroller.h \
     chat/user/identitycontroller.h \
     chat/helper/migrationhelper.h \
-    chat/helper/sql.h
+    chat/helper/sql.h \
+    chat/network/datanetworkhandler.h

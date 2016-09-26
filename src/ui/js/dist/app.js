@@ -90,6 +90,13 @@
 
   chatApp = angular.module('chatApp', []);
 
+  chatApp.config([
+    '$compileProvider', function($compileProvider) {
+      $compileProvider.aHrefSanitizationWhitelist(/^\s*(stream):/);
+      return $compileProvider.imgSrcSanitizationWhitelist(/^\s*(stream):/);
+    }
+  ]);
+
   _class_instance_MessageQueue = null;
 
   chatApp.factory('MessageQueue', [
@@ -164,13 +171,18 @@
   _class_instance_ChatController = null;
 
   chatApp.controller('ChatController', [
-    '$rootScope', '$scope', 'MessageQueue', function($rootScope, $scope, MessageQueue) {
+    '$rootScope', '$scope', '$sce', 'MessageQueue', function($rootScope, $scope, $sce, MessageQueue) {
       var ChatContact, ChatController, ChatMessage, controller;
       ChatMessage = (function() {
         function ChatMessage(message, from_me, from_contact, is_file) {
 
           /*
            */
+          this.DATA_TYPES = {
+            images: ['jpg', 'jpeg', 'png', 'gif'],
+            audios: ['mp3'],
+            movies: ['mp4', 'webm']
+          };
           this.message = message;
           this.is_from_me = from_me;
           this.is_from_contact = from_contact;
@@ -190,8 +202,12 @@
 
           /*
            */
-          if (this.message.indexOf('.jpg') > -1 || this.message.indexOf('.png') > -1) {
+          if (this._isType('images', this.message)) {
             return 'image';
+          } else if (this._isType('audios', this.message)) {
+            return 'audio';
+          } else if (this._isType('movies', this.message)) {
+            return 'movie';
           } else {
             return 'downloadable';
           }
@@ -211,11 +227,40 @@
           return this.message;
         };
 
+        ChatMessage.prototype.audio = function() {
+
+          /*
+           */
+          return $sce.trustAsResourceUrl(this.message);
+        };
+
+        ChatMessage.prototype.movie = function() {
+
+          /*
+           */
+          return $sce.trustAsResourceUrl(this.message);
+        };
+
         ChatMessage.prototype.text = function() {
 
           /*
            */
           return this.message;
+        };
+
+        ChatMessage.prototype._isType = function(type_name, data_string) {
+
+          /*
+           */
+          var i, len, ref, type;
+          ref = this.DATA_TYPES[type_name];
+          for (i = 0, len = ref.length; i < len; i++) {
+            type = ref[i];
+            if (data_string.toLowerCase().indexOf("." + type) > -1) {
+              return true;
+            }
+          }
+          return false;
         };
 
         return ChatMessage;
@@ -287,26 +332,11 @@
 
           /*
            */
-          var files, message, reader;
+          var message;
           message = this.current_typed_message;
           this.current_typed_message.length = 0;
           this.current_typed_message = '';
-          if (!this.is_file_chosen) {
-            chat.sendMessageToUser(this.current_contact.username, message);
-          } else {
-            reader = new FileReader();
-            reader.onload = (function(_this) {
-              return function() {
-                var url;
-                url = reader.result;
-                console.log(url);
-                return chat.sendMessageToUser(_this.current_contact.username, url);
-              };
-            })(this);
-            files = jQuery('#file-input-button')[0].files;
-            reader.readAsDataURL(files[0]);
-            this.is_file_chosen = false;
-          }
+          chat.sendMessageToUser(this.current_contact.username, message);
           return create_message_from_me(message);
         };
 
@@ -314,8 +344,24 @@
 
           /*
            */
-          jQuery('#file-input-button').click();
-          return this.is_file_chosen = true;
+          var $file_input;
+          $file_input = jQuery('#file-input-button');
+          $file_input.change((function(_this) {
+            return function() {
+              var files, reader;
+              console.log('file chosen');
+              reader = new FileReader();
+              reader.onload = function() {
+                var url;
+                url = reader.result;
+                console.log(url);
+                return chat.sendMessageToUser(_this.current_contact.username, url);
+              };
+              files = $file_input[0].files;
+              return reader.readAsDataURL(files[0]);
+            };
+          })(this));
+          return $file_input.click();
         };
 
         ChatController.prototype.onMessageFromMe = function(message) {

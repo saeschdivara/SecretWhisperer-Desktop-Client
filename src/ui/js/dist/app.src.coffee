@@ -104,6 +104,10 @@ create_message_to_me = (message) ->
 create_file_message_to_me = (message) ->
     _class_instance_MessageQueue.$publish('new-file-from-other', message)
 chatApp = angular.module('chatApp', [])
+chatApp.config(['$compileProvider', ($compileProvider) ->
+	$compileProvider.aHrefSanitizationWhitelist(/^\s*(stream):/)
+	$compileProvider.imgSrcSanitizationWhitelist(/^\s*(stream):/)
+])
 
 _class_instance_MessageQueue = null
  
@@ -186,7 +190,7 @@ getRandomHexString = () ->
 
 _class_instance_ChatController = null
 
-chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($rootScope, $scope, MessageQueue) ->
+chatApp.controller('ChatController', ['$rootScope', '$scope', '$sce', 'MessageQueue', ($rootScope, $scope, $sce, MessageQueue) ->
 
     class ChatMessage
         ########################
@@ -204,6 +208,11 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
         constructor: (message, from_me, from_contact, is_file) ->
             ###
             ###
+
+            @DATA_TYPES =
+                images: ['jpg', 'jpeg', 'png', 'gif']
+                audios: ['mp3']
+                movies: ['mp4', 'webm']
 
             @message = message
             @is_from_me = from_me
@@ -224,8 +233,12 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             ###
             ###
 
-            if @message.indexOf('.jpg') > -1 or @message.indexOf('.png') > -1
+            if @_isType('images', @message)
                 'image'
+            else if @_isType('audios', @message)
+                'audio'
+            else if @_isType('movies', @message)
+                'movie'
             else
                 'downloadable'
 
@@ -244,11 +257,35 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             @message
 
 
+        audio: () ->
+            ###
+            ###
+
+            $sce.trustAsResourceUrl(@message)
+
+
+        movie: () ->
+            ###
+            ###
+
+            $sce.trustAsResourceUrl(@message)
+
+
         text: () ->
             ###
             ###
 
             @message
+
+        _isType: (type_name, data_string) ->
+            ###
+            ###
+
+            for type in @DATA_TYPES[type_name]
+                if data_string.toLowerCase().indexOf("." + type) > -1
+                    return true
+
+            return false
 
 
     class ChatContact
@@ -330,20 +367,7 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             @current_typed_message.length = 0
             @current_typed_message = ''
 
-            if not @is_file_chosen
-                chat.sendMessageToUser(@current_contact.username, message)
-            else
-                reader = new FileReader()
-                reader.onload = () =>
-                    url = reader.result
-                    console.log(url)
-                    chat.sendMessageToUser(@current_contact.username, url)
-
-                files = jQuery('#file-input-button')[0].files
-                reader.readAsDataURL(files[0])
-
-                @is_file_chosen = false
-
+            chat.sendMessageToUser(@current_contact.username, message)
             create_message_from_me(message)
 
 
@@ -351,8 +375,23 @@ chatApp.controller('ChatController', ['$rootScope', '$scope', 'MessageQueue', ($
             ###
             ###
 
-            jQuery('#file-input-button').click()
-            @is_file_chosen = true
+            $file_input = jQuery('#file-input-button')
+
+            $file_input.change(
+                () =>
+                    console.log('file chosen')
+
+                    reader = new FileReader()
+                    reader.onload = () =>
+                        url = reader.result
+                        console.log(url)
+                        chat.sendMessageToUser(@current_contact.username, url)
+
+                    files = $file_input[0].files
+                    reader.readAsDataURL(files[0])
+            )
+
+            $file_input.click()
 
 
         onMessageFromMe: (message) =>

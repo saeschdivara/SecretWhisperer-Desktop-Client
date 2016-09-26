@@ -1,9 +1,11 @@
 #include <QApplication>
 
+#include <QtWebEngineWidgets/QWebEngineProfile>
 #include <QtWebEngineWidgets/QWebEngineView>
 #include <QtWebChannel/QWebChannel>
 
 #include "chat/chatcontroller.h"
+#include "chat/network/datanetworkhandler.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,6 +15,8 @@ int main(int argc, char *argv[])
 
     QWebEngineView webview;
     QWebEnginePage * page = webview.page();
+
+    page->profile()->installUrlSchemeHandler("stream", new DataNetworkHandler);
 
     webview.load(QUrl(QStringLiteral("qrc:/ui/interface/index.html")));
     webview.resize(640 * 2, 540);

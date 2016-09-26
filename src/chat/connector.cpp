@@ -43,7 +43,10 @@ void Connector::onMessage(const QByteArray &command, const QByteArray &username,
 
 void Connector::onData()
 {
-    QByteArray readData = socket->read(1024 * 4);
+    socket->setReadBufferSize(1024 * 64);
+    qDebug() << "Buffer size: " << socket->readBufferSize();
+
+    QByteArray readData = socket->readAll();
     savedData += readData;
     qDebug() << "New data gotten";
     qDebug() << "Available bytes: " << socket->bytesAvailable();
